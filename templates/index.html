@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Informe - Club Atlético Central</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F3F4F6;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .progress-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #E5E7EB;
+            color: #6B7280;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .step.active .step-number {
+            background: #10B981;
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: #059669;
+            color: white;
+        }
+        
+        .step-title {
+            font-size: 12px;
+            color: #6B7280;
+        }
+        
+        .step.active .step-title {
+            color: #10B981;
+            font-weight: 600;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            color: #1F2937;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #10B981;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #10B981;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #10B981;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #059669;
+        }
+        
+        .btn-secondary {
+            background: #6B7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4B5563;
+        }
+        
+        .btn-success {
+            background: #10B981;
+            color: white;
+            width: 100%;
+            font-size: 18px;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .jugadores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .jugador-item {
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .jugador-item input {
+            margin-bottom: 8px;
+        }
+        
+        .nivel-selector {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 8px;
+        }
+        
+        .nivel-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #E5E7EB;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nivel-btn.peligroso {
+            background: #EF4444;
+        }
+        
+        .nivel-btn.normal {
+            background: #3B82F6;
+        }
+        
+        .nivel-btn.debil {
+            background: #86EFAC;
+        }
+        
+        .nivel-btn.selected {
+            transform: scale(1.2);
+            border-color: #000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #E5E7EB;
+            border-top: 4px solid #10B981;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hint {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>⚽ Club Atlético Central - Generador de Informes</h1>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="progress-bar">
+            <div class="steps">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Datos Básicos</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Jugadores</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Análisis Táctico</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Generar</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-card">
+            <!-- SECCIÓN 1: Datos Básicos -->
+            <div class="form-section active" id="section1">
+                <h2 class="section-title">📋 Datos Básicos del Rival</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre_rival">Nombre del Equipo Rival *</label>
+                        <input type="text" id="nombre_rival" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="jornada">Jornada *</label>
+                        <input type="text" id="jornada" placeholder="Ej: Jornada 15" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sistema">Sistema Táctico *</label>
+                        <select id="sistema" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="4-3-3">4-3-3</option>
+                            <option value="4-4-2">4-4-2</option>
+                            <option value="4-2-3-1">4-2-3-1</option>
+                            <option value="3-5-2">3-5-2</option>
+                            <option value="3-4-3">3-4-3</option>
+                            <option value="4-1-4-1">4-1-4-1</option>
+                            <option value="5-3-2">5-3-2</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="posicion">Posición en Tabla *</label>
+                        <input type="text" id="posicion" placeholder="Ej: 3º" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="racha">Racha (Últimos 5 Partidos) *</label>
+                    <input type="text" id="racha" placeholder="Ej: V-V-E-D-V" required>
+                    <div class="hint">Usa V (Victoria), E (Empate), D (Derrota) separados por guiones</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bajas">Bajas (Lesionados y Sancionados)</label>
+                    <textarea id="bajas" placeholder="Ej: Lesionados: #23 Pérez (lateral). Sancionados: #10 García (doble amarilla)."></textarea>
+                </div>
+                
+                <div class="buttons">
+                    <div></div>
+                    <button class="btn-primary" onclick="nextSection(2)">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 2: Jugadores -->
+            <div class="form-section" id="section2">
+                <h2 class="section-title">👥 Jugadores y Posiciones</h2>
+                
+                <p style="margin-bottom: 20px; color: #6B7280;">
+                    Se generarán automáticamente 11 jugadores según el sistema táctico seleccionado.
+                    Asigna los números de dorsal y marca el nivel de cada jugador.
+                </p>
+                
+                <div id="jugadores-container"></div>
+                
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(1)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(3)">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 3: Análisis Táctico -->
+            <div class="form-section" id="section3">
+                <h2 class="section-title">⚽ Análisis Táctico</h2>
+                
+                <div class="form-group">
+                    <label for="ataque_organizado">Ataque Organizado *</label>
+                    <textarea id="ataque_organizado" required placeholder="Describe cómo atacan organizadamente..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="defensa_organizada">Defensa Organizada *</label>
+                    <textarea id="defensa_organizada" required placeholder="Describe cómo defienden..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transicion_def_atq">Transición Defensa → Ataque *</label>
+                    <textarea id="transicion_def_atq" required placeholder="Cómo pasan de defensa a ataque..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transicion_atq_def">Transición Ataque → Defensa *</label>
+                    <textarea id="transicion_atq_def" required placeholder="Cómo replegan tras perder el balón..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="abp">Acciones a Balón Parado (ABP) *</label>
+                    <textarea id="abp" required placeholder="Córneres, faltas, saques de banda..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="analisis_jugadores">Análisis Individual de Jugadores *</label>
+                    <textarea id="analisis_jugadores" required placeholder="Analiza los jugadores más importantes por dorsal..."></textarea>
+                    <div class="hint">Ejemplo: #1 Portero: Bueno bajo palos... #9 Delantero: Muy peligroso...</div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(2)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(4)">Siguiente →</button>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 4: Generar -->
+            <div class="form-section" id="section4">
+                <h2 class="section-title">✅ Generar Informe</h2>
+                
+                <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px;">Resumen:</h3>
+                    <p><strong>Equipo:</strong> <span id="resumen_equipo">-</span></p>
+                    <p><strong>Jornada:</strong> <span id="resumen_jornada">-</span></p>
+                    <p><strong>Sistema:</strong> <span id="resumen_sistema">-</span></p>
+                    <p><strong>Posición:</strong> <span id="resumen_posicion">-</span></p>
+                </div>
+                
+                <button class="btn-success" onclick="generarPDF()">🎯 Generar Informe PDF</button>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generando informe profesional...</p>
+                </div>
+                
+                <div class="buttons" style="margin-top: 20px;">
+                    <button class="btn-secondary" onclick="prevSection(3)">← Anterior</button>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentSection = 1;
+        
+        // Sistemas tácticos con posiciones predefinidas
+        const sistemasJugadores = {
+            "4-3-3": [
+                {pos: "POR", x: 0.08, y: 0.5},
+                {pos: "LD", x: 0.25, y: 0.15},
+                {pos: "DFC", x: 0.25, y: 0.38},
+                {pos: "DFC", x: 0.25, y: 0.62},
+                {pos: "LI", x: 0.25, y: 0.85},
+                {pos: "MC", x: 0.5, y: 0.3},
+                {pos: "MC", x: 0.5, y: 0.5},
+                {pos: "MC", x: 0.5, y: 0.7},
+                {pos: "ED", x: 0.75, y: 0.2},
+                {pos: "DC", x: 0.75, y: 0.5},
+                {pos: "EI", x: 0.75, y: 0.8}
+            ],
+            "4-4-2": [
+                {pos: "POR", x: 0.08, y: 0.5},
+                {pos: "LD", x: 0.25, y: 0.15},
+                {pos: "DFC", x: 0.25, y: 0.38},
+                {pos: "DFC", x: 0.25, y: 0.62},
+                {pos: "LI", x: 0.25, y: 0.85},
+                {pos: "MC", x: 0.5, y: 0.2},
+                {pos: "MC", x: 0.5, y: 0.4},
+                {pos: "MC", x: 0.5, y: 0.6},
+                {pos: "MC", x: 0.5, y: 0.8},
+                {pos: "DC", x: 0.75, y: 0.4},
+                {pos: "DC", x: 0.75, y: 0.6}
+            ],
+            "4-2-3-1": [
+                {pos: "POR", x: 0.08, y: 0.5},
+                {pos: "LD", x: 0.25, y: 0.15},
+                {pos: "DFC", x: 0.25, y: 0.38},
+                {pos: "DFC", x: 0.25, y: 0.62},
+                {pos: "LI", x: 0.25, y: 0.85},
+                {pos: "PV", x: 0.45, y: 0.35},
+                {pos: "PV", x: 0.45, y: 0.65},
+                {pos: "ED", x: 0.6, y: 0.2},
+                {pos: "MP", x: 0.6, y: 0.5},
+                {pos: "EI", x: 0.6, y: 0.8},
+                {pos: "DC", x: 0.75, y: 0.5}
+            ],
+            "3-5-2": [
+                {pos: "POR", x: 0.08, y: 0.5},
+                {pos: "DFC", x: 0.25, y: 0.25},
+                {pos: "DFC", x: 0.25, y: 0.5},
+                {pos: "DFC", x: 0.25, y: 0.75},
+                {pos: "CAR", x: 0.5, y: 0.15},
+                {pos: "MC", x: 0.5, y: 0.35},
+                {pos: "MC", x: 0.5, y: 0.5},
+                {pos: "MC", x: 0.5, y: 0.65},
+                {pos: "CAR", x: 0.5, y: 0.85},
+                {pos: "DC", x: 0.75, y: 0.4},
+                {pos: "DC", x: 0.75, y: 0.6}
+            ]
+        };
+        
+        function nextSection(section) {
+            // Validar sección actual
+            if (!validateSection(currentSection)) {
+                return;
+            }
+            
+            // Ocultar sección actual
+            document.getElementById(`section${currentSection}`).classList.remove('active');
+            document.querySelector(`.step[data-step="${currentSection}"]`).classList.add('completed');
+            document.querySelector(`.step[data-step="${currentSection}"]`).classList.remove('active');
+            
+            // Mostrar nueva sección
+            currentSection = section;
+            document.getElementById(`section${currentSection}`).classList.add('active');
+            document.querySelector(`.step[data-step="${currentSection}"]`).classList.add('active');
+            
+            // Si es sección 2, generar jugadores
+            if (section === 2) {
+                generarJugadores();
+            }
+            
+            // Si es sección 4, mostrar resumen
+            if (section === 4) {
+                mostrarResumen();
+            }
+            
+            window.scrollTo(0, 0);
+        }
+        
+        function prevSection(section) {
+            // Ocultar sección actual
+            document.getElementById(`section${currentSection}`).classList.remove('active');
+            document.querySelector(`.step[data-step="${currentSection}"]`).classList.remove('active');
+            
+            // Mostrar sección anterior
+            currentSection = section;
+            document.getElementById(`section${currentSection}`).classList.add('active');
+            document.querySelector(`.step[data-step="${currentSection}"]`).classList.add('active');
+            
+            window.scrollTo(0, 0);
+        }
+        
+        function validateSection(section) {
+            if (section === 1) {
+                const required = ['nombre_rival', 'jornada', 'sistema', 'posicion', 'racha'];
+                for (let field of required) {
+                    const value = document.getElementById(field).value.trim();
+                    if (!value) {
+                        alert('Por favor, completa todos los campos obligatorios (*)');
+                        return false;
+                    }
+                }
+            }
+            
+            if (section === 3) {
+                const required = ['ataque_organizado', 'defensa_organizada', 'transicion_def_atq', 
+                                 'transicion_atq_def', 'abp', 'analisis_jugadores'];
+                for (let field of required) {
+                    const value = document.getElementById(field).value.trim();
+                    if (!value) {
+                        alert('Por favor, completa todos los análisis tácticos');
+                        return false;
+                    }
+                }
+            }
+            
+            return true;
+        }
+        
+        function generarJugadores() {
+            const sistema = document.getElementById('sistema').value;
+            const jugadoresTemplate = sistemasJugadores[sistema] || sistemasJugadores["4-3-3"];
+            
+            const container = document.getElementById('jugadores-container');
+            container.innerHTML = '<div class="jugadores-grid">';
+            
+            jugadoresTemplate.forEach((jug, index) => {
+                container.innerHTML += `
+                    <div class="jugador-item">
+                        <input type="text" id="jugador_${index}_numero" placeholder="#${index + 1}" 
+                               value="${index + 1}" style="width: 60px; text-align: center;">
+                        <div style="font-size: 12px; font-weight: 600; margin: 5px 0;">${jug.pos}</div>
+                        <div class="nivel-selector">
+                            <div class="nivel-btn peligroso ${index === 0 || index === 9 || index === 10 ? 'selected' : ''}" 
+                                 onclick="selectNivel(${index}, 'peligroso')" 
+                                 title="Peligroso"></div>
+                            <div class="nivel-btn normal ${index > 0 && index < 9 ? 'selected' : ''}" 
+                                 onclick="selectNivel(${index}, 'normal')" 
+                                 title="Normal"></div>
+                            <div class="nivel-btn debil" 
+                                 onclick="selectNivel(${index}, 'debil')" 
+                                 title="Débil"></div>
+                        </div>
+                        <input type="hidden" id="jugador_${index}_nivel" value="${index === 0 || index === 9 || index === 10 ? 'peligroso' : 'normal'}">
+                        <input type="hidden" id="jugador_${index}_x" value="${jug.x}">
+                        <input type="hidden" id="jugador_${index}_y" value="${jug.y}">
+                    </div>
+                `;
+            });
+            
+            container.innerHTML += '</div>';
+        }
+        
+        function selectNivel(index, nivel) {
+            // Desmarcar todos
+            const container = document.querySelectorAll(`.jugador-item`)[index];
+            container.querySelectorAll('.nivel-btn').forEach(btn => btn.classList.remove('selected'));
+            
+            // Marcar seleccionado
+            container.querySelector(`.nivel-btn.${nivel}`).classList.add('selected');
+            document.getElementById(`jugador_${index}_nivel`).value = nivel;
+        }
+        
+        function mostrarResumen() {
+            document.getElementById('resumen_equipo').textContent = document.getElementById('nombre_rival').value;
+            document.getElementById('resumen_jornada').textContent = document.getElementById('jornada').value;
+            document.getElementById('resumen_sistema').textContent = document.getElementById('sistema').value;
+            document.getElementById('resumen_posicion').textContent = document.getElementById('posicion').value;
+        }
+        
+        async function generarPDF() {
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.classList.add('active');
+            
+            // Recopilar todos los datos
+            const datos = {
+                nombre_rival: document.getElementById('nombre_rival').value,
+                jornada: document.getElementById('jornada').value,
+                sistema: document.getElementById('sistema').value,
+                posicion: document.getElementById('posicion').value,
+                racha: document.getElementById('racha').value,
+                bajas: document.getElementById('bajas').value,
+                ataque_organizado: document.getElementById('ataque_organizado').value,
+                defensa_organizada: document.getElementById('defensa_organizada').value,
+                transicion_def_atq: document.getElementById('transicion_def_atq').value,
+                transicion_atq_def: document.getElementById('transicion_atq_def').value,
+                abp: document.getElementById('abp').value,
+                analisis_jugadores: document.getElementById('analisis_jugadores').value,
+                jugadores: []
+            };
+            
+            // Recopilar jugadores
+            const sistema = document.getElementById('sistema').value;
+            const numJugadores = (sistemasJugadores[sistema] || sistemasJugadores["4-3-3"]).length;
+            
+            for (let i = 0; i < numJugadores; i++) {
+                datos.jugadores.push({
+                    x: parseFloat(document.getElementById(`jugador_${i}_x`).value),
+                    y: parseFloat(document.getElementById(`jugador_${i}_y`).value),
+                    numero: document.getElementById(`jugador_${i}_numero`).value,
+                    nivel: document.getElementById(`jugador_${i}_nivel`).value
+                });
+            }
+            
+            try {
+                const response = await fetch('/generar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Informe_${datos.nombre_rival.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Preguntar si quiere crear otro
+                    if (confirm('✅ Informe generado exitosamente.\n\n¿Quieres crear otro informe?')) {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error al generar el informe. Inténtalo de nuevo.');
+                }
+            } catch (error) {
+                alert('Error de conexión. Inténtalo de nuevo.');
+            } finally {
+                loadingDiv.classList.remove('active');
+            }
+        }
+        
+        async function logout() {
+            try {
+                await fetch('/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>
