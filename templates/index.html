@@ -299,6 +299,157 @@
             color: #6B7280;
             margin-top: 5px;
         }
+
+        /* Estilos para Plan de Partido */
+        .tactical-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tactical-card {
+            border: 3px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .tactical-card:hover {
+            border-color: #10B981;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tactical-card.selected {
+            border-color: #10B981;
+            background: #F0FDF4;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .tactical-card h3 {
+            color: #1F2937;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tactical-card .checkmark {
+            display: none;
+            color: #10B981;
+            font-size: 24px;
+        }
+
+        .tactical-card.selected .checkmark {
+            display: inline;
+        }
+
+        .tactical-card p {
+            color: #6B7280;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .tactical-card .cuando-usar {
+            background: #FEF3C7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #92400E;
+            margin-top: 10px;
+        }
+
+        .subsection-title {
+            font-size: 18px;
+            color: #374151;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #E5E7EB;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #EFF6FF;
+            border-left: 4px solid #3B82F6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .info-box strong {
+            color: #1E40AF;
+        }
+
+        .offensive-strategies {
+            margin-top: 15px;
+        }
+
+        .strategy-item {
+            background: #F9FAFB;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .strategy-item:hover {
+            border-color: #10B981;
+        }
+
+        .strategy-item.selected {
+            border-color: #10B981;
+            background: #F0FDF4;
+        }
+
+        .strategy-item h4 {
+            color: #1F2937;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .strategy-item p {
+            color: #6B7280;
+            font-size: 13px;
+            margin-bottom: 0;
+        }
+
+        .plan-summary {
+            background: #F3F4F6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .plan-summary h3 {
+            margin-bottom: 15px;
+            color: #1F2937;
+        }
+
+        .plan-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .plan-summary li {
+            padding: 8px 0;
+            color: #374151;
+            display: flex;
+            align-items: start;
+            gap: 8px;
+        }
+
+        .plan-summary li:before {
+            content: "✓";
+            color: #10B981;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -326,7 +477,11 @@
                 </div>
                 <div class="step" data-step="4">
                     <div class="step-number">4</div>
-                    <div class="step-title">Generar</div>
+                    <div class="step-title">Informe Rival</div>
+                </div>
+                <div class="step" data-step="5">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Plan de Partido</div>
                 </div>
             </div>
         </div>
@@ -466,6 +621,193 @@
                 <div class="buttons" style="margin-top: 20px;">
                     <button class="btn-secondary" onclick="prevSection(3)">← Anterior</button>
                     <div></div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 5: Plan de Partido -->
+            <div class="form-section" id="section5">
+                <h2 class="section-title">📋 Plan de Partido</h2>
+
+                <div class="info-box">
+                    <strong>💡 Instrucciones:</strong> Selecciona las opciones tácticas que mejor se adapten a tu estrategia.
+                    Puedes clicar en las opciones que te interesen y añadir observaciones personalizadas.
+                </div>
+
+                <!-- OPCIONES DEFENSIVAS -->
+                <h3 class="subsection-title">🛡️ 1. Organización Defensiva</h3>
+                <p style="color: #6B7280; margin-bottom: 15px;">Selecciona UNA opción de bloque defensivo:</p>
+
+                <div class="tactical-grid">
+                    <div class="tactical-card" onclick="selectDefensive('bloque_alto')">
+                        <h3><span class="checkmark">✓</span> Bloque Alto (Pressing)</h3>
+                        <p><strong>Descripción:</strong> Presionar al rival en su campo. Línea defensiva adelantada (40-45m).</p>
+                        <div class="cuando-usar">
+                            <strong>Cuándo usar:</strong> Contra rivales con salida desde atrás débil o portero con mal juego de pies.
+                        </div>
+                    </div>
+
+                    <div class="tactical-card" onclick="selectDefensive('bloque_medio')">
+                        <h3><span class="checkmark">✓</span> Bloque Medio (Equilibrado)</h3>
+                        <p><strong>Descripción:</strong> Replegar entre medio campo y 3/4 del campo. Línea defensiva en 30-35m.</p>
+                        <div class="cuando-usar">
+                            <strong>Cuándo usar:</strong> Contra rivales de nivel similar. Cuando se busca equilibrio.
+                        </div>
+                    </div>
+
+                    <div class="tactical-card" onclick="selectDefensive('bloque_bajo')">
+                        <h3><span class="checkmark">✓</span> Bloque Bajo (Repliegue)</h3>
+                        <p><strong>Descripción:</strong> Defender cerca del área propia. Línea defensiva por debajo de 30m.</p>
+                        <div class="cuando-usar">
+                            <strong>Cuándo usar:</strong> Contra rivales superiores. Proteger resultados.
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="plan_defensiva" value="">
+
+                <!-- OPCIONES OFENSIVAS -->
+                <h3 class="subsection-title">⚡ 2. Salida de Balón / Ataque</h3>
+                <p style="color: #6B7280; margin-bottom: 15px;">Selecciona UNA opción según el bloque del rival:</p>
+
+                <div class="tactical-grid">
+                    <div class="tactical-card" onclick="selectOffensive('vs_bloque_alto')">
+                        <h3><span class="checkmark">✓</span> Salida vs Bloque Alto</h3>
+                        <p><strong>El rival presiona arriba.</strong> Opciones: balones largos a la espalda, salida corta con superioridad, juego de tercer hombre.</p>
+                        <div class="cuando-usar">
+                            <strong>Mejor contra:</strong> Equipos que presionan alto (Guardiola, Klopp)
+                        </div>
+                    </div>
+
+                    <div class="tactical-card" onclick="selectOffensive('vs_bloque_medio')">
+                        <h3><span class="checkmark">✓</span> Salida vs Bloque Medio</h3>
+                        <p><strong>El rival cede iniciación pero cierra el medio.</strong> Opciones: progresión por bandas, juego interior, cambios de orientación.</p>
+                        <div class="cuando-usar">
+                            <strong>Mejor contra:</strong> Equipos equilibrados (Ancelotti, Emery)
+                        </div>
+                    </div>
+
+                    <div class="tactical-card" onclick="selectOffensive('vs_bloque_bajo')">
+                        <h3><span class="checkmark">✓</span> Salida vs Bloque Bajo</h3>
+                        <p><strong>El rival defiende muy atrás.</strong> Opciones: ataque posicional, amplitud + centros, jugadores entre líneas.</p>
+                        <div class="cuando-usar">
+                            <strong>Mejor contra:</strong> Equipos defensivos (Simeone, Mourinho)
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="plan_ofensiva" value="">
+
+                <!-- TRANSICIONES -->
+                <h3 class="subsection-title">🔄 3. Transiciones</h3>
+
+                <div class="form-group">
+                    <label>Transición Defensa → Ataque (Contraataque)</label>
+                    <select id="plan_transicion_def_atq">
+                        <option value="">Seleccionar...</option>
+                        <option value="directo">Contraataque directo (máximo 3 pases)</option>
+                        <option value="elaborado">Contraataque elaborado (progresión rápida con apoyo)</option>
+                        <option value="contra_pressing">Contra-pressing (presión inmediata tras pérdida)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Transición Ataque → Defensa (Repliegue)</label>
+                    <select id="plan_transicion_atq_def">
+                        <option value="">Seleccionar...</option>
+                        <option value="pressing_inmediato">Pressing inmediato (5 segundos tras pérdida - gegenpressing)</option>
+                        <option value="repliegue_intensivo">Repliegue intensivo (correr hacia atrás para organizarse)</option>
+                        <option value="repliegue_selectivo">Repliegue selectivo (algunos presionan, otros repliegan)</option>
+                    </select>
+                </div>
+
+                <!-- BALÓN PARADO -->
+                <h3 class="subsection-title">🎯 4. Balón Parado</h3>
+
+                <div class="form-group">
+                    <label>Estrategia en Córners a favor</label>
+                    <select id="plan_corners_favor">
+                        <option value="">Seleccionar...</option>
+                        <option value="corto">Córner corto: combinación para centro posterior</option>
+                        <option value="primer_palo">Córner al primer palo: bloqueador + rematador</option>
+                        <option value="segundo_palo">Córner al segundo palo: zona de mayor efectividad</option>
+                        <option value="ensayado">Córner ensayado: jugada preparada</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Defensa en Córners en contra</label>
+                    <select id="plan_corners_contra">
+                        <option value="">Seleccionar...</option>
+                        <option value="zona">Defensa en zona: cada jugador defiende una zona del área</option>
+                        <option value="mixta">Defensa mixta: zona + marcaje a jugadores peligrosos</option>
+                        <option value="individual">Defensa individual: cada jugador marca a un rival</option>
+                    </select>
+                </div>
+
+                <!-- NUESTRO EQUIPO -->
+                <h3 class="subsection-title">👕 5. Nuestro Equipo</h3>
+
+                <div class="form-group">
+                    <label>Sistema Táctico Propio *</label>
+                    <select id="plan_sistema_propio" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="4-3-3">4-3-3</option>
+                        <option value="4-4-2">4-4-2</option>
+                        <option value="4-2-3-1">4-2-3-1</option>
+                        <option value="3-5-2">3-5-2</option>
+                        <option value="5-3-2">5-3-2</option>
+                        <option value="3-4-3">3-4-3</option>
+                        <option value="4-1-4-1">4-1-4-1</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Jugadores Clave de Nuestro Equipo</label>
+                    <textarea id="plan_jugadores_clave" placeholder="Ej: #10 Pérez (mediapunta, creativo), #9 García (delantero, rematador), #5 López (pivote, equilibrio)..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Bajas / Lesionados</label>
+                    <textarea id="plan_bajas" placeholder="Jugadores que no estarán disponibles para el partido..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Instrucciones Específicas por Puesto</label>
+                    <textarea id="plan_instrucciones" placeholder="Ej: Portero: salir como líbero. Laterales: no subir ambos al mismo tiempo. Delantero: presionar centrales rivales..."></textarea>
+                </div>
+
+                <!-- OBSERVACIONES FINALES -->
+                <h3 class="subsection-title">📝 6. Observaciones Adicionales del Entrenador</h3>
+
+                <div class="form-group">
+                    <label>Notas Tácticas Adicionales</label>
+                    <textarea id="plan_notas" placeholder="Cualquier observación táctica adicional que quieras incluir en el plan..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Cambios Previstos Durante el Partido</label>
+                    <textarea id="plan_cambios" placeholder="Cambios tácticos o de jugadores que planeas hacer durante el partido..."></textarea>
+                </div>
+
+                <!-- RESUMEN DEL PLAN -->
+                <div class="plan-summary">
+                    <h3>📊 Resumen del Plan de Partido</h3>
+                    <ul id="plan_resumen">
+                        <li>Selecciona las opciones tácticas arriba para ver el resumen</li>
+                    </ul>
+                </div>
+
+                <!-- BOTÓN GENERAR PLAN -->
+                <button class="btn-success" onclick="generarPlanPDF()">🎯 Generar Plan de Partido PDF</button>
+
+                <div class="loading" id="loading-plan">
+                    <div class="spinner"></div>
+                    <p>Generando plan de partido...</p>
+                </div>
+
+                <div class="buttons" style="margin-top: 20px;">
+                    <button class="btn-secondary" onclick="prevSection(4)">← Volver a Informe</button>
+                    <button class="btn-secondary" onclick="window.location.reload()">🔄 Nuevo Informe</button>
                 </div>
             </div>
         </div>
@@ -703,10 +1045,14 @@
                     a.click();
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
-                    
-                    // Preguntar si quiere crear otro
-                    if (confirm('✅ Informe generado exitosamente.\n\n¿Quieres crear otro informe?')) {
-                        window.location.reload();
+
+                    // Preguntar si quiere crear plan de partido
+                    if (confirm('✅ Informe del rival generado exitosamente!\n\n📋 ¿Quieres crear un PLAN DE PARTIDO para combatir a este rival?')) {
+                        nextSection(5); // Ir al paso 5
+                    } else {
+                        if (confirm('¿Quieres crear otro informe desde cero?')) {
+                            window.location.reload();
+                        }
                     }
                 } else {
                     alert('Error al generar el informe. Inténtalo de nuevo.');
@@ -718,6 +1064,186 @@
             }
         }
         
+        // ============================================
+        // FUNCIONES PARA PLAN DE PARTIDO
+        // ============================================
+
+        function selectDefensive(opcion) {
+            // Desmarcar todas las opciones defensivas
+            document.querySelectorAll('#section5 .tactical-grid')[0]
+                .querySelectorAll('.tactical-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+
+            // Marcar la opción seleccionada
+            event.currentTarget.classList.add('selected');
+            document.getElementById('plan_defensiva').value = opcion;
+
+            actualizarResumenPlan();
+        }
+
+        function selectOffensive(opcion) {
+            // Desmarcar todas las opciones ofensivas
+            document.querySelectorAll('#section5 .tactical-grid')[1]
+                .querySelectorAll('.tactical-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+
+            // Marcar la opción seleccionada
+            event.currentTarget.classList.add('selected');
+            document.getElementById('plan_ofensiva').value = opcion;
+
+            actualizarResumenPlan();
+        }
+
+        function actualizarResumenPlan() {
+            const resumenUl = document.getElementById('plan_resumen');
+            const items = [];
+
+            // Opción defensiva
+            const defensiva = document.getElementById('plan_defensiva').value;
+            if (defensiva) {
+                const nombres = {
+                    'bloque_alto': '🛡️ Bloque Alto (Pressing)',
+                    'bloque_medio': '🛡️ Bloque Medio (Equilibrado)',
+                    'bloque_bajo': '🛡️ Bloque Bajo (Repliegue)'
+                };
+                items.push(nombres[defensiva]);
+            }
+
+            // Opción ofensiva
+            const ofensiva = document.getElementById('plan_ofensiva').value;
+            if (ofensiva) {
+                const nombres = {
+                    'vs_bloque_alto': '⚡ Salida vs Bloque Alto del rival',
+                    'vs_bloque_medio': '⚡ Salida vs Bloque Medio del rival',
+                    'vs_bloque_bajo': '⚡ Salida vs Bloque Bajo del rival'
+                };
+                items.push(nombres[ofensiva]);
+            }
+
+            // Transiciones
+            const transDefAtq = document.getElementById('plan_transicion_def_atq').value;
+            if (transDefAtq) {
+                const text = document.getElementById('plan_transicion_def_atq').selectedOptions[0].text;
+                items.push('🔄 Transición Def→Atq: ' + text);
+            }
+
+            const transAtqDef = document.getElementById('plan_transicion_atq_def').value;
+            if (transAtqDef) {
+                const text = document.getElementById('plan_transicion_atq_def').selectedOptions[0].text;
+                items.push('🔄 Transición Atq→Def: ' + text);
+            }
+
+            // Sistema propio
+            const sistema = document.getElementById('plan_sistema_propio').value;
+            if (sistema) {
+                items.push('👕 Nuestro sistema: ' + sistema);
+            }
+
+            // Mostrar resumen
+            if (items.length > 0) {
+                resumenUl.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+            } else {
+                resumenUl.innerHTML = '<li>Selecciona las opciones tácticas arriba para ver el resumen</li>';
+            }
+        }
+
+        // Escuchar cambios en los selects para actualizar resumen
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectsPlan = [
+                'plan_transicion_def_atq',
+                'plan_transicion_atq_def',
+                'plan_corners_favor',
+                'plan_corners_contra',
+                'plan_sistema_propio'
+            ];
+
+            selectsPlan.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    elem.addEventListener('change', actualizarResumenPlan);
+                }
+            });
+        });
+
+        async function generarPlanPDF() {
+            const loadingDiv = document.getElementById('loading-plan');
+            loadingDiv.classList.add('active');
+
+            // Validar que se haya seleccionado al menos la opción defensiva y ofensiva
+            const defensiva = document.getElementById('plan_defensiva').value;
+            const ofensiva = document.getElementById('plan_ofensiva').value;
+            const sistema = document.getElementById('plan_sistema_propio').value;
+
+            if (!defensiva || !ofensiva || !sistema) {
+                alert('⚠️ Por favor selecciona:\n- Organización defensiva\n- Salida de balón/ataque\n- Sistema táctico propio');
+                loadingDiv.classList.remove('active');
+                return;
+            }
+
+            // Recopilar datos del plan de partido
+            const datosPlan = {
+                // Datos del rival (de las secciones anteriores)
+                nombre_rival: document.getElementById('nombre_rival').value,
+                jornada: document.getElementById('jornada').value,
+                sistema_rival: document.getElementById('sistema').value,
+
+                // Opciones tácticas seleccionadas
+                plan_defensiva: defensiva,
+                plan_ofensiva: ofensiva,
+                plan_transicion_def_atq: document.getElementById('plan_transicion_def_atq').value,
+                plan_transicion_atq_def: document.getElementById('plan_transicion_atq_def').value,
+                plan_corners_favor: document.getElementById('plan_corners_favor').value,
+                plan_corners_contra: document.getElementById('plan_corners_contra').value,
+
+                // Nuestro equipo
+                plan_sistema_propio: sistema,
+                plan_jugadores_clave: document.getElementById('plan_jugadores_clave').value,
+                plan_bajas: document.getElementById('plan_bajas').value,
+                plan_instrucciones: document.getElementById('plan_instrucciones').value,
+
+                // Observaciones
+                plan_notas: document.getElementById('plan_notas').value,
+                plan_cambios: document.getElementById('plan_cambios').value
+            };
+
+            try {
+                const response = await fetch('/generar_plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datosPlan)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Plan_Partido_vs_${datosPlan.nombre_rival.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                    alert('✅ Plan de Partido generado exitosamente!');
+
+                    if (confirm('¿Quieres crear otro informe desde cero?')) {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error al generar el plan de partido. Inténtalo de nuevo.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión. Inténtalo de nuevo.');
+            } finally {
+                loadingDiv.classList.remove('active');
+            }
+        }
+
         async function logout() {
             try {
                 await fetch('/logout', { method: 'POST' });

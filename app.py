@@ -8,9 +8,10 @@ import io
 from datetime import datetime
 import sys
 
-# Importar el generador de informes
+# Importar los generadores
 sys.path.append(os.path.dirname(__file__))
 from generar_informe import generar_informe_pdf
+from generar_plan_partido import generar_plan_partido_pdf
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -88,6 +89,47 @@ def generar():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/generar_plan', methods=['POST'])
+def generar_plan():
+    """Generar el PDF del Plan de Partido"""
+    if not session.get('authenticated'):
+        return jsonify({'error': 'No autorizado'}), 401
+
+    try:
+        datos = request.json
+
+        # Crear archivo temporal para el PDF
+        pdf_path = tempfile.mktemp(suffix='.pdf')
+
+        # Generar el PDF
+        generar_plan_partido_pdf(datos, pdf_path)
+
+        # Leer el PDF
+        with open(pdf_path, 'rb') as pdf_file:
+            pdf_data = pdf_file.read()
+
+        # Limpiar archivo temporal
+        try:
+            os.unlink(pdf_path)
+        except:
+            pass
+
+        # Nombre del archivo
+        nombre_archivo = f"Plan_Partido_vs_{datos.get('nombre_rival', 'Rival').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+
+        # Enviar el PDF
+        return send_file(
+            io.BytesIO(pdf_data),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=nombre_archivo
+        )
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/logout', methods=['POST'])
 def logout():
