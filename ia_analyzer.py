@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Analizador de IA para Notas de Partido
-Club Atlético Central - Integración con Groq, Claude y Ollama
+Club Atlético Central
 """
 
 import os
 import json
 import requests
 from dotenv import load_dotenv
+from groq import Groq
 
 # Cargar variables de entorno
 load_dotenv()
@@ -160,50 +161,46 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
 }}"""
 
     def _analizar_groq(self, prompt):
-        """Analiza usando Groq API (GRATIS)"""
+        """Analiza usando Groq API"""
         if not self.groq_key:
-            raise ValueError("GROQ_API_KEY no configurada en .env")
+            raise ValueError("API Key de Groq no configurada")
 
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {self.groq_key}",
-            "Content-Type": "application/json"
-        }
+        try:
+            client = Groq(api_key=self.groq_key)
 
-        data = {
-            "model": "llama-3.1-70b-versatile",  # Modelo potente y gratis
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "Eres un analista táctico de fútbol profesional. Respondes SIEMPRE en formato JSON válido."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            "temperature": 0.3,  # Más determinista para análisis
-            "max_tokens": 2000
-        }
+            completion = client.chat.completions.create(
+                model="llama-3.1-70b-versatile",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Eres un analista táctico de fútbol profesional. Respondes SIEMPRE en formato JSON válido."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=0.3,
+                max_tokens=2000
+            )
 
-        response = requests.post(url, headers=headers, json=data, timeout=30)
-        response.raise_for_status()
+            contenido = completion.choices[0].message.content
 
-        resultado = response.json()
-        contenido = resultado['choices'][0]['message']['content']
+            # Limpiar markdown si existe
+            contenido = contenido.strip()
+            if contenido.startswith('```json'):
+                contenido = contenido[7:]
+            if contenido.startswith('```'):
+                contenido = contenido[3:]
+            if contenido.endswith('```'):
+                contenido = contenido[:-3]
+            contenido = contenido.strip()
 
-        # Limpiar markdown si existe
-        contenido = contenido.strip()
-        if contenido.startswith('```json'):
-            contenido = contenido[7:]
-        if contenido.startswith('```'):
-            contenido = contenido[3:]
-        if contenido.endswith('```'):
-            contenido = contenido[:-3]
-        contenido = contenido.strip()
+            # Parsear JSON
+            return json.loads(contenido)
 
-        # Parsear JSON
-        return json.loads(contenido)
+        except Exception as e:
+            raise ValueError(f"Error al conectar con Groq: {str(e)}")
 
     def _analizar_claude(self, prompt):
         """Analiza usando Claude API"""

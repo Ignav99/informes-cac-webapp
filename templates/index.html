@@ -570,9 +570,6 @@
                 <h2 class="section-title">🤖 Notas del Partido con IA</h2>
 
                 <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-left: 4px solid #5a67d8; color: white;">
-                    <strong style="color: white;">✨ Nueva Funcionalidad con IA:</strong><br>
-                    Escribe tus notas tal y como las tomaste durante el partido. La IA las analizará y completará automáticamente todo el informe de forma profesional.
-                    <br><br>
                     <strong style="color: white;">💡 Ejemplo de notas:</strong><br>
                     <em style="color: #e0e7ff;">"El 10 organiza todo, muy bueno. El 9 rápido pero flojo de cabeza. Salen bien desde atrás, portero buen pie. Presionan alto pero dejan espacios. Laterales suben mucho..."</em>
                 </div>
@@ -590,14 +587,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Modelo de IA</label>
+                    <label>Proveedor de IA</label>
                     <select id="ia_provider" style="font-size: 14px;">
-                        <option value="groq" selected>Groq (Llama 3.1 - GRATIS y Rápido) ⚡</option>
-                        <option value="claude">Claude Haiku (Premium - 0.3¢ por análisis) 💎</option>
+                        <option value="groq" selected>Groq</option>
+                        <option value="claude">Claude</option>
                     </select>
-                    <div class="hint">
-                        ⚡ Groq es gratis y muy rápido. Recomendado para empezar.
-                    </div>
                 </div>
 
                 <button class="btn-success" onclick="analizarConIA()" id="btn-analizar" style="position: relative; overflow: hidden;">
@@ -775,11 +769,8 @@
                 <h2 class="section-title">📋 Plan de Partido</h2>
 
                 <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-left: 4px solid #e91e63; color: white;">
-                    <strong style="color: white;">🤖 IA Táctica Activada:</strong><br>
-                    La IA puede sugerirte las mejores tácticas para combatir a este rival basándose en su análisis.
-                    <br><br>
-                    <button onclick="generarSugerenciasTacticas()" style="background: white; color: #e91e63; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.3s; font-size: 15px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                        ✨ Obtener Sugerencias Tácticas con IA
+                    <button onclick="generarSugerenciasTacticas()" style="background: white; color: #e91e63; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 15px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        🤖 Generar Sugerencias Tácticas
                     </button>
                 </div>
 
@@ -812,8 +803,7 @@
                 </div>
 
                 <div class="info-box">
-                    <strong>💡 Instrucciones:</strong> Puedes usar las sugerencias de la IA (botón arriba) o seleccionar manualmente las opciones tácticas.
-                    Todo es completamente editable.
+                    <strong>💡 Instrucciones:</strong> Selecciona las opciones tácticas para tu plan de partido. Puedes obtener sugerencias automáticas con el botón de arriba o configurar todo manualmente.
                 </div>
 
                 <!-- OPCIONES DEFENSIVAS -->
