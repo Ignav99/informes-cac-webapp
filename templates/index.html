@@ -774,9 +774,46 @@
             <div class="form-section" id="section5">
                 <h2 class="section-title">📋 Plan de Partido</h2>
 
+                <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-left: 4px solid #e91e63; color: white;">
+                    <strong style="color: white;">🤖 IA Táctica Activada:</strong><br>
+                    La IA puede sugerirte las mejores tácticas para combatir a este rival basándose en su análisis.
+                    <br><br>
+                    <button onclick="generarSugerenciasTacticas()" style="background: white; color: #e91e63; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.3s; font-size: 15px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        ✨ Obtener Sugerencias Tácticas con IA
+                    </button>
+                </div>
+
+                <!-- Loading sugerencias IA -->
+                <div class="loading" id="loading-sugerencias-ia" style="display: none;">
+                    <div class="ia-analyzing">
+                        <div class="spinner"></div>
+                        <p style="font-size: 18px; font-weight: 600; margin: 15px 0;">🧠 Generando plan táctico...</p>
+                        <p style="font-size: 14px; color: #6B7280;">La IA está analizando al rival y sugiriendo las mejores tácticas para combatirlo</p>
+                        <div class="progress-bar-ia">
+                            <div class="progress-fill-ia"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultado sugerencias -->
+                <div id="sugerencias-resultado" style="display: none; margin: 20px 0;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+                        <h3 style="margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">💡</span>
+                            <span>Sugerencias Tácticas de la IA</span>
+                        </h3>
+                        <div id="sugerencias-content" style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin-top: 10px; line-height: 1.8;">
+                            <!-- Contenido dinámico -->
+                        </div>
+                        <p style="margin: 15px 0 0 0; opacity: 0.9; font-size: 14px;">
+                            ✏️ Las tácticas sugeridas han sido pre-seleccionadas automáticamente. Puedes revisarlas y modificarlas según tu criterio.
+                        </p>
+                    </div>
+                </div>
+
                 <div class="info-box">
-                    <strong>💡 Instrucciones:</strong> Selecciona las opciones tácticas que mejor se adapten a tu estrategia.
-                    Puedes clicar en las opciones que te interesen y añadir observaciones personalizadas.
+                    <strong>💡 Instrucciones:</strong> Puedes usar las sugerencias de la IA (botón arriba) o seleccionar manualmente las opciones tácticas.
+                    Todo es completamente editable.
                 </div>
 
                 <!-- OPCIONES DEFENSIVAS -->
@@ -1360,6 +1397,156 @@
         // ============================================
         // FUNCIONES PARA PLAN DE PARTIDO
         // ============================================
+
+        async function generarSugerenciasTacticas() {
+            const loadingDiv = document.getElementById('loading-sugerencias-ia');
+            const resultadoDiv = document.getElementById('sugerencias-resultado');
+            const sugerenciasContent = document.getElementById('sugerencias-content');
+
+            // Validar que tenemos datos del rival
+            if (!datosAnalizadosIA) {
+                alert('⚠️ Primero debes analizar al rival en el Paso 0 para obtener sugerencias tácticas.\n\nO puedes seleccionar manualmente las opciones.');
+                return;
+            }
+
+            // Mostrar loading
+            loadingDiv.style.display = 'block';
+            resultadoDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/generar_sugerencias_plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        datos_rival: datosAnalizadosIA,
+                        notas_adicionales: '',
+                        provider: 'groq'
+                    })
+                });
+
+                const resultado = await response.json();
+
+                if (resultado.success && resultado.data) {
+                    const sugerencias = resultado.data;
+
+                    // Mostrar sugerencias en el panel
+                    let contenidoHTML = '<div style="color: white; font-size: 14px;">';
+
+                    if (sugerencias.bloque_defensivo_sugerido) {
+                        const nombresDefensivos = {
+                            'bloque_alto': '🛡️ Bloque Alto (Pressing)',
+                            'bloque_medio': '🛡️ Bloque Medio (Equilibrado)',
+                            'bloque_bajo': '🛡️ Bloque Bajo (Repliegue)'
+                        };
+                        contenidoHTML += `<p><strong>Defensa:</strong> ${nombresDefensivos[sugerencias.bloque_defensivo_sugerido]}</p>`;
+                        contenidoHTML += `<p style="margin-left: 20px; font-size: 13px; opacity: 0.9;">${sugerencias.justificacion_defensiva}</p>`;
+                    }
+
+                    if (sugerencias.salida_ofensiva_sugerida) {
+                        const nombresOfensivos = {
+                            'vs_bloque_alto': '⚡ Salida vs Bloque Alto',
+                            'vs_bloque_medio': '⚡ Salida vs Bloque Medio',
+                            'vs_bloque_bajo': '⚡ Salida vs Bloque Bajo'
+                        };
+                        contenidoHTML += `<p style="margin-top: 15px;"><strong>Ataque:</strong> ${nombresOfensivos[sugerencias.salida_ofensiva_sugerida]}</p>`;
+                        contenidoHTML += `<p style="margin-left: 20px; font-size: 13px; opacity: 0.9;">${sugerencias.justificacion_ofensiva}</p>`;
+                    }
+
+                    if (sugerencias.puntos_clave && Array.isArray(sugerencias.puntos_clave)) {
+                        contenidoHTML += '<p style="margin-top: 15px;"><strong>Puntos Clave:</strong></p>';
+                        contenidoHTML += '<ul style="margin-left: 20px; font-size: 13px; opacity: 0.9;">';
+                        sugerencias.puntos_clave.forEach(punto => {
+                            contenidoHTML += `<li>${punto}</li>`;
+                        });
+                        contenidoHTML += '</ul>';
+                    }
+
+                    contenidoHTML += '</div>';
+                    sugerenciasContent.innerHTML = contenidoHTML;
+
+                    // Pre-seleccionar opciones automáticamente
+                    if (sugerencias.bloque_defensivo_sugerido) {
+                        preseleccionarDefensiva(sugerencias.bloque_defensivo_sugerido);
+                    }
+                    if (sugerencias.salida_ofensiva_sugerida) {
+                        preseleccionarOfensiva(sugerencias.salida_ofensiva_sugerida);
+                    }
+                    if (sugerencias.transicion_def_atq_sugerida) {
+                        document.getElementById('plan_transicion_def_atq').value = sugerencias.transicion_def_atq_sugerida;
+                    }
+                    if (sugerencias.transicion_atq_def_sugerida) {
+                        document.getElementById('plan_transicion_atq_def').value = sugerencias.transicion_atq_def_sugerida;
+                    }
+
+                    // Actualizar resumen
+                    actualizarResumenPlan();
+
+                    // Mostrar resultado
+                    loadingDiv.style.display = 'none';
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.classList.add('success-animation');
+
+                    // Scroll suave
+                    document.querySelector('.subsection-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                } else {
+                    throw new Error(resultado.error || 'Error desconocido');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error al generar sugerencias:\n\n' + error.message + '\n\nPuedes continuar seleccionando manualmente las opciones.');
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function preseleccionarDefensiva(opcion) {
+            // Desmarcar todas
+            document.querySelectorAll('#section5 .tactical-grid')[0]
+                .querySelectorAll('.tactical-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+
+            // Buscar y seleccionar la correcta
+            const opciones = {
+                'bloque_alto': 0,
+                'bloque_medio': 1,
+                'bloque_bajo': 2
+            };
+            const index = opciones[opcion];
+            if (index !== undefined) {
+                const cards = document.querySelectorAll('#section5 .tactical-grid')[0].querySelectorAll('.tactical-card');
+                if (cards[index]) {
+                    cards[index].classList.add('selected');
+                    document.getElementById('plan_defensiva').value = opcion;
+                }
+            }
+        }
+
+        function preseleccionarOfensiva(opcion) {
+            // Desmarcar todas
+            document.querySelectorAll('#section5 .tactical-grid')[1]
+                .querySelectorAll('.tactical-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+
+            // Buscar y seleccionar la correcta
+            const opciones = {
+                'vs_bloque_alto': 0,
+                'vs_bloque_medio': 1,
+                'vs_bloque_bajo': 2
+            };
+            const index = opciones[opcion];
+            if (index !== undefined) {
+                const cards = document.querySelectorAll('#section5 .tactical-grid')[1].querySelectorAll('.tactical-card');
+                if (cards[index]) {
+                    cards[index].classList.add('selected');
+                    document.getElementById('plan_ofensiva').value = opcion;
+                }
+            }
+        }
 
         function selectDefensive(opcion) {
             // Desmarcar todas las opciones defensivas
