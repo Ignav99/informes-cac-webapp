@@ -8,10 +8,11 @@ import io
 from datetime import datetime
 import sys
 
-# Importar los generadores
+# Importar los generadores y analizador IA
 sys.path.append(os.path.dirname(__file__))
 from generar_informe import generar_informe_pdf
 from generar_plan_partido import generar_plan_partido_pdf
+from ia_analyzer import IAAnalyzer
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -89,6 +90,69 @@ def generar():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/analizar_notas', methods=['POST'])
+def analizar_notas():
+    """Analizar notas del partido con IA y devolver datos estructurados"""
+    if not session.get('authenticated'):
+        return jsonify({'error': 'No autorizado'}), 401
+
+    try:
+        datos = request.json
+        notas_texto = datos.get('notas', '')
+        provider = datos.get('provider', 'groq')
+
+        if not notas_texto or len(notas_texto.strip()) < 50:
+            return jsonify({
+                'success': False,
+                'error': 'Las notas deben tener al menos 50 caracteres para un análisis adecuado'
+            }), 400
+
+        # Analizar con IA
+        analyzer = IAAnalyzer(provider=provider)
+        resultado = analyzer.analizar_notas_rival(notas_texto)
+
+        if resultado['success']:
+            return jsonify(resultado)
+        else:
+            return jsonify(resultado), 500
+
+    except Exception as e:
+        print(f"Error en análisis IA: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Error al analizar: {str(e)}'
+        }), 500
+
+
+@app.route('/generar_sugerencias_plan', methods=['POST'])
+def generar_sugerencias_plan():
+    """Generar sugerencias tácticas para el plan de partido"""
+    if not session.get('authenticated'):
+        return jsonify({'error': 'No autorizado'}), 401
+
+    try:
+        datos = request.json
+        datos_rival = datos.get('datos_rival', {})
+        notas_adicionales = datos.get('notas_adicionales', '')
+        provider = datos.get('provider', 'groq')
+
+        # Analizar con IA
+        analyzer = IAAnalyzer(provider=provider)
+        resultado = analyzer.generar_plan_tactico(datos_rival, notas_adicionales)
+
+        if resultado['success']:
+            return jsonify(resultado)
+        else:
+            return jsonify(resultado), 500
+
+    except Exception as e:
+        print(f"Error en generación de plan: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Error al generar sugerencias: {str(e)}'
+        }), 500
+
 
 @app.route('/generar_plan', methods=['POST'])
 def generar_plan():

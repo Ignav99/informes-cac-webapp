@@ -450,6 +450,80 @@
             color: #10B981;
             font-weight: bold;
         }
+
+        /* Estilos para Sección IA */
+        .ia-analyzing {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .progress-bar-ia {
+            width: 100%;
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill-ia {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 200% 100%;
+            animation: progressAnimation 2s linear infinite;
+            width: 0%;
+        }
+
+        @keyframes progressAnimation {
+            0% {
+                background-position: 100% 0;
+                width: 0%;
+            }
+            50% {
+                width: 70%;
+            }
+            100% {
+                background-position: -100% 0;
+                width: 100%;
+            }
+        }
+
+        #btn-analizar {
+            transition: all 0.3s ease;
+        }
+
+        #btn-analizar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        #btn-analizar:active {
+            transform: translateY(0);
+        }
+
+        .char-count-warning {
+            color: #EF4444;
+            font-weight: 600;
+        }
+
+        .char-count-ok {
+            color: #10B981;
+            font-weight: 600;
+        }
+
+        /* Animación de éxito */
+        @keyframes successPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -463,7 +537,11 @@
     <div class="container">
         <div class="progress-bar">
             <div class="steps">
-                <div class="step active" data-step="1">
+                <div class="step active" data-step="0">
+                    <div class="step-number">0</div>
+                    <div class="step-title">Notas IA</div>
+                </div>
+                <div class="step" data-step="1">
                     <div class="step-number">1</div>
                     <div class="step-title">Datos Básicos</div>
                 </div>
@@ -485,10 +563,78 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="form-card">
+            <!-- SECCIÓN 0: Notas del Partido (NUEVO con IA) -->
+            <div class="form-section active" id="section0">
+                <h2 class="section-title">🤖 Notas del Partido con IA</h2>
+
+                <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-left: 4px solid #5a67d8; color: white;">
+                    <strong style="color: white;">✨ Nueva Funcionalidad con IA:</strong><br>
+                    Escribe tus notas tal y como las tomaste durante el partido. La IA las analizará y completará automáticamente todo el informe de forma profesional.
+                    <br><br>
+                    <strong style="color: white;">💡 Ejemplo de notas:</strong><br>
+                    <em style="color: #e0e7ff;">"El 10 organiza todo, muy bueno. El 9 rápido pero flojo de cabeza. Salen bien desde atrás, portero buen pie. Presionan alto pero dejan espacios. Laterales suben mucho..."</em>
+                </div>
+
+                <div class="form-group">
+                    <label for="notas_partido" style="font-size: 16px;">📝 Tus Notas del Partido</label>
+                    <textarea
+                        id="notas_partido"
+                        placeholder="Escribe aquí tus observaciones del partido (mínimo 50 caracteres)...&#10;&#10;Ejemplo:&#10;- Sistema táctico que utiliza&#10;- Cómo ataca (jugadores clave, patrones, etc)&#10;- Cómo defiende (altura del bloque, presión, etc)&#10;- Transiciones&#10;- Jugadores destacados&#10;- Puntos débiles observados&#10;- Balones parados&#10;- Cualquier otra observación..."
+                        style="min-height: 300px; font-size: 14px; line-height: 1.6;"
+                    ></textarea>
+                    <div class="hint">
+                        <span id="char-count">0</span> caracteres (mínimo 50 para análisis)
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Modelo de IA</label>
+                    <select id="ia_provider" style="font-size: 14px;">
+                        <option value="groq" selected>Groq (Llama 3.1 - GRATIS y Rápido) ⚡</option>
+                        <option value="claude">Claude Haiku (Premium - 0.3¢ por análisis) 💎</option>
+                    </select>
+                    <div class="hint">
+                        ⚡ Groq es gratis y muy rápido. Recomendado para empezar.
+                    </div>
+                </div>
+
+                <button class="btn-success" onclick="analizarConIA()" id="btn-analizar" style="position: relative; overflow: hidden;">
+                    <span id="btn-text">🤖 Analizar con IA</span>
+                </button>
+
+                <!-- Loading IA -->
+                <div class="loading" id="loading-ia" style="display: none;">
+                    <div class="ia-analyzing">
+                        <div class="spinner"></div>
+                        <p style="font-size: 18px; font-weight: 600; margin: 15px 0;">🧠 Analizando tus notas...</p>
+                        <p style="font-size: 14px; color: #6B7280;">La IA está procesando tus observaciones y generando un análisis profesional</p>
+                        <div class="progress-bar-ia">
+                            <div class="progress-fill-ia"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultado del análisis -->
+                <div id="resultado-analisis" style="display: none; margin-top: 20px;">
+                    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 10px 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">✅</span>
+                            <span>¡Análisis Completado!</span>
+                        </h3>
+                        <p style="margin: 0; opacity: 0.9;">Los datos han sido procesados y rellenados automáticamente. Puedes revisarlos y editarlos en los siguientes pasos.</p>
+                    </div>
+                </div>
+
+                <div class="buttons" style="margin-top: 30px;">
+                    <div></div>
+                    <button class="btn-primary" onclick="nextSection(1)">Continuar sin IA →</button>
+                </div>
+            </div>
+
             <!-- SECCIÓN 1: Datos Básicos -->
-            <div class="form-section active" id="section1">
+            <div class="form-section" id="section1">
                 <h2 class="section-title">📋 Datos Básicos del Rival</h2>
                 
                 <div class="form-row">
@@ -814,8 +960,155 @@
     </div>
     
     <script>
-        let currentSection = 1;
-        
+        let currentSection = 0;
+        let datosAnalizadosIA = null; // Guardar datos del análisis IA
+
+        // ============================================
+        // FUNCIONES PARA IA
+        // ============================================
+
+        // Contador de caracteres
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('notas_partido');
+            const charCount = document.getElementById('char-count');
+
+            if (textarea && charCount) {
+                textarea.addEventListener('input', function() {
+                    const length = this.value.length;
+                    charCount.textContent = length;
+
+                    if (length < 50) {
+                        charCount.className = 'char-count-warning';
+                    } else {
+                        charCount.className = 'char-count-ok';
+                    }
+                });
+            }
+        });
+
+        async function analizarConIA() {
+            const notas = document.getElementById('notas_partido').value;
+            const provider = document.getElementById('ia_provider').value;
+            const loadingDiv = document.getElementById('loading-ia');
+            const btnAnalizar = document.getElementById('btn-analizar');
+            const resultadoDiv = document.getElementById('resultado-analisis');
+
+            // Validar notas
+            if (!notas || notas.trim().length < 50) {
+                alert('⚠️ Por favor escribe al menos 50 caracteres en tus notas para un análisis adecuado.');
+                return;
+            }
+
+            // Mostrar loading
+            loadingDiv.style.display = 'block';
+            btnAnalizar.disabled = true;
+            btnAnalizar.style.opacity = '0.6';
+            resultadoDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/analizar_notas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        notas: notas,
+                        provider: provider
+                    })
+                });
+
+                const resultado = await response.json();
+
+                if (resultado.success && resultado.data) {
+                    // Guardar datos analizados
+                    datosAnalizadosIA = resultado.data;
+
+                    // Rellenar campos automáticamente
+                    rellenarCamposDesdeIA(resultado.data);
+
+                    // Mostrar resultado exitoso
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.classList.add('success-animation');
+
+                    // Ocultar loading
+                    loadingDiv.style.display = 'none';
+
+                    // Scroll al resultado
+                    resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                    // Auto-avanzar después de 2 segundos
+                    setTimeout(() => {
+                        if (confirm('✅ Análisis completado!\n\n¿Quieres revisar los datos generados automáticamente?')) {
+                            nextSection(1);
+                        }
+                    }, 1500);
+
+                } else {
+                    throw new Error(resultado.error || 'Error desconocido');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error al analizar las notas:\n\n' + error.message + '\n\nPor favor, inténtalo de nuevo o continúa manualmente.');
+                loadingDiv.style.display = 'none';
+            } finally {
+                btnAnalizar.disabled = false;
+                btnAnalizar.style.opacity = '1';
+            }
+        }
+
+        function rellenarCamposDesdeIA(datos) {
+            console.log('Rellenando campos con datos IA:', datos);
+
+            // Sección 1: Datos Básicos
+            if (datos.sistema_tactico) {
+                document.getElementById('sistema').value = datos.sistema_tactico;
+            }
+
+            // Sección 3: Análisis Táctico
+            if (datos.ataque_organizado) {
+                document.getElementById('ataque_organizado').value = datos.ataque_organizado;
+            }
+            if (datos.defensa_organizada) {
+                document.getElementById('defensa_organizada').value = datos.defensa_organizada;
+            }
+            if (datos.transicion_def_atq) {
+                document.getElementById('transicion_def_atq').value = datos.transicion_def_atq;
+            }
+            if (datos.transicion_atq_def) {
+                document.getElementById('transicion_atq_def').value = datos.transicion_atq_def;
+            }
+            if (datos.abp) {
+                document.getElementById('abp').value = datos.abp;
+            }
+
+            // Análisis de jugadores
+            if (datos.jugadores_clave && Array.isArray(datos.jugadores_clave)) {
+                let analisisJugadores = 'JUGADORES CLAVE:\n\n';
+                datos.jugadores_clave.forEach(jugador => {
+                    analisisJugadores += `#${jugador.numero}: ${jugador.descripcion}\n\n`;
+                });
+
+                if (datos.debilidades_rival && Array.isArray(datos.debilidades_rival)) {
+                    analisisJugadores += '\n\nDEBILIDADES A EXPLOTAR:\n\n';
+                    datos.debilidades_rival.forEach(debilidad => {
+                        analisisJugadores += `• ${debilidad}\n`;
+                    });
+                }
+
+                if (datos.fortalezas_rival && Array.isArray(datos.fortalezas_rival)) {
+                    analisisJugadores += '\n\nFORTALEZAS DEL RIVAL:\n\n';
+                    datos.fortalezas_rival.forEach(fortaleza => {
+                        analisisJugadores += `• ${fortaleza}\n`;
+                    });
+                }
+
+                document.getElementById('analisis_jugadores').value = analisisJugadores;
+            }
+
+            console.log('✅ Campos rellenados automáticamente');
+        }
+
         // Sistemas tácticos con posiciones predefinidas
         const sistemasJugadores = {
             "4-3-3": [
