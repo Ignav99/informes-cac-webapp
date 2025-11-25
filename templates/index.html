@@ -669,7 +669,19 @@
                     <input type="text" id="racha" placeholder="Ej: V-V-E-D-V" required>
                     <div class="hint">Usa V (Victoria), E (Empate), D (Derrota) separados por guiones</div>
                 </div>
-                
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="goles_favor">Goles a Favor</label>
+                        <input type="number" id="goles_favor" placeholder="Ej: 25" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="goles_contra">Goles en Contra</label>
+                        <input type="number" id="goles_contra" placeholder="Ej: 12" min="0">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="bajas">Bajas (Lesionados y Sancionados)</label>
                     <textarea id="bajas" placeholder="Ej: Lesionados: #23 Pérez (lateral). Sancionados: #10 García (doble amarilla)."></textarea>
@@ -1323,6 +1335,8 @@
                 sistema: document.getElementById('sistema').value,
                 posicion: document.getElementById('posicion').value,
                 racha: document.getElementById('racha').value,
+                goles_favor: document.getElementById('goles_favor').value || '',
+                goles_contra: document.getElementById('goles_contra').value || '',
                 bajas: document.getElementById('bajas').value,
                 ataque_organizado: document.getElementById('ataque_organizado').value,
                 defensa_organizada: document.getElementById('defensa_organizada').value,
@@ -1330,6 +1344,8 @@
                 transicion_atq_def: document.getElementById('transicion_atq_def').value,
                 abp: document.getElementById('abp').value,
                 analisis_jugadores: document.getElementById('analisis_jugadores').value,
+                debilidades_rival: datosAnalizadosIA?.debilidades_rival || [],
+                fortalezas_rival: datosAnalizadosIA?.fortalezas_rival || [],
                 jugadores: []
             };
             

@@ -199,8 +199,15 @@ def generar_informe_pdf(datos, nombre_archivo):
     # FICHA DEL EQUIPO
     # ============================================
     
+    # Construir texto de goles si están disponibles
+    goles_texto = ''
+    if datos.get('goles_favor') or datos.get('goles_contra'):
+        gf = datos.get('goles_favor', '0')
+        gc = datos.get('goles_contra', '0')
+        goles_texto = f'{gf} GF / {gc} GC'
+
     ficha_data = [
-        [Paragraph('<b>Equipo Rival:</b>', style_texto), 
+        [Paragraph('<b>Equipo Rival:</b>', style_texto),
          Paragraph(datos.get('nombre_rival', 'N/A'), style_texto),
          Paragraph('<b>Jornada:</b>', style_texto),
          Paragraph(datos.get('jornada', 'N/A'), style_texto)],
@@ -210,7 +217,8 @@ def generar_informe_pdf(datos, nombre_archivo):
          Paragraph(datos.get('posicion', 'N/A'), style_texto)],
         [Paragraph('<b>Racha:</b>', style_texto),
          Paragraph(datos.get('racha', 'N/A'), style_texto),
-         '', '']
+         Paragraph('<b>Goles:</b>', style_texto) if goles_texto else '',
+         Paragraph(goles_texto, style_texto) if goles_texto else '']
     ]
     
     ficha_table = Table(ficha_data, colWidths=[ancho_pagina*0.22, ancho_pagina*0.28, 
@@ -344,7 +352,55 @@ def generar_informe_pdf(datos, nombre_archivo):
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
     ]))
     story.append(jugadores_table)
-    
+    story.append(Spacer(1, 0.3*cm))
+
+    # ============================================
+    # DEBILIDADES Y FORTALEZAS DEL RIVAL
+    # ============================================
+
+    debilidades = datos.get('debilidades_rival', [])
+    fortalezas = datos.get('fortalezas_rival', [])
+
+    # Solo mostrar sección si hay datos
+    if debilidades or fortalezas:
+        debilidades_fortalezas_data = [
+            [Paragraph('<b>⚠️ DEBILIDADES DEL RIVAL</b>', style_subtitulo),
+             Paragraph('<b>💪 FORTALEZAS DEL RIVAL</b>', style_subtitulo)],
+        ]
+
+        # Convertir listas en párrafos con viñetas
+        debilidades_texto = ''
+        if debilidades and isinstance(debilidades, list) and len(debilidades) > 0:
+            debilidades_texto = '<br/>'.join([f'• {d}' for d in debilidades])
+        else:
+            debilidades_texto = 'No identificadas'
+
+        fortalezas_texto = ''
+        if fortalezas and isinstance(fortalezas, list) and len(fortalezas) > 0:
+            fortalezas_texto = '<br/>'.join([f'• {f}' for f in fortalezas])
+        else:
+            fortalezas_texto = 'No identificadas'
+
+        debilidades_fortalezas_data.append([
+            Paragraph(debilidades_texto, style_texto_small),
+            Paragraph(fortalezas_texto, style_texto_small)
+        ])
+
+        debfor_table = Table(debilidades_fortalezas_data, colWidths=[ancho_pagina*0.5]*2)
+        debfor_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), COLOR_GRIS_CLARO),
+            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#FEF3C7')),  # Amarillo claro para debilidades
+            ('BACKGROUND', (1, 1), (1, -1), colors.HexColor('#D1FAE5')),  # Verde claro para fortalezas
+            ('GRID', (0, 0), (-1, -1), 0.5, COLOR_GRIS_CLARO),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('TEXTCOLOR', (0, 0), (-1, -1), COLOR_GRIS_OSCURO),
+        ]))
+        story.append(debfor_table)
+
     # Generar PDF
     doc.build(story)
     print(f"✅ Informe generado exitosamente: {nombre_archivo}")
