@@ -6,12 +6,19 @@ Club Atlético Central
 
 import os
 import json
-import requests
+import sys
 from dotenv import load_dotenv
-from groq import Groq
 
 # Cargar variables de entorno
 load_dotenv()
+
+# Importar Groq con manejo de errores
+try:
+    from groq import Groq
+    print(f"✓ Groq importado correctamente", file=sys.stderr)
+except ImportError as e:
+    print(f"✗ Error importando Groq: {e}", file=sys.stderr)
+    raise
 
 
 class IAAnalyzer:
@@ -29,6 +36,14 @@ class IAAnalyzer:
         self.provider = provider
         self.groq_key = os.getenv('GROQ_API_KEY')
         self.claude_key = os.getenv('ANTHROPIC_API_KEY')
+
+        # Log para debugging
+        print(f"[IA] Provider: {provider}", file=sys.stderr)
+        if provider == 'groq':
+            if self.groq_key:
+                print(f"[IA] API Key encontrada: {self.groq_key[:20]}...", file=sys.stderr)
+            else:
+                print(f"[IA] ✗ GROQ_API_KEY no encontrada", file=sys.stderr)
 
     def analizar_notas_rival(self, notas_texto):
         """
@@ -163,10 +178,23 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
     def _analizar_groq(self, prompt):
         """Analiza usando Groq API"""
         if not self.groq_key:
-            raise ValueError("API Key de Groq no configurada")
+            print("[IA] Error: API Key no configurada", file=sys.stderr)
+            raise ValueError("API Key de Groq no configurada en variables de entorno")
 
         try:
-            client = Groq(api_key=self.groq_key)
+            print("[IA] Inicializando cliente Groq...", file=sys.stderr)
+
+            # Inicializar cliente - compatible con versiones antiguas y nuevas
+            try:
+                # Versión nueva (>0.10.0)
+                client = Groq(api_key=self.groq_key)
+            except TypeError as te:
+                print(f"[IA] Error con versión nueva, intentando versión antigua: {te}", file=sys.stderr)
+                # Versión antigua (0.4.x)
+                import groq as groq_module
+                client = groq_module.Client(api_key=self.groq_key)
+
+            print("[IA] Cliente Groq inicializado, haciendo petición...", file=sys.stderr)
 
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
@@ -184,6 +212,7 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
                 max_tokens=2000
             )
 
+            print("[IA] Respuesta recibida, procesando...", file=sys.stderr)
             contenido = completion.choices[0].message.content
 
             # Limpiar markdown si existe
@@ -197,10 +226,15 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
             contenido = contenido.strip()
 
             # Parsear JSON
-            return json.loads(contenido)
+            resultado = json.loads(contenido)
+            print("[IA] ✓ Análisis completado exitosamente", file=sys.stderr)
+            return resultado
 
         except Exception as e:
-            raise ValueError(f"Error al conectar con Groq: {str(e)}")
+            print(f"[IA] ✗ Error en _analizar_groq: {type(e).__name__}: {str(e)}", file=sys.stderr)
+            import traceback
+            traceback.print_exc(file=sys.stderr)
+            raise ValueError(f"Error al conectar con Groq: {type(e).__name__} - {str(e)}")
 
     def _analizar_claude(self, prompt):
         """Analiza usando Claude API"""
