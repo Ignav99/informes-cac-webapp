@@ -111,40 +111,91 @@ class IAAnalyzer:
             }
 
     def _construir_prompt_rival(self, notas):
-        """Construye el prompt para analizar al rival"""
-        return f"""Eres un analista táctico de fútbol profesional con experiencia en equipos profesionales.
-Analiza estas notas informales que un entrenador tomó durante la observación de un equipo rival.
-
-IMPORTANTE:
-- Transforma las notas en un análisis profesional y estructurado
-- Usa lenguaje técnico pero claro
-- Identifica patrones tácticos
-- Señala puntos fuertes y débiles
-- Sé específico y concreto
+        """Construye el prompt para analizar al rival por fases del juego"""
+        return f"""Eres un analista táctico de fútbol profesional. Analiza estas notas de observación de un rival.
 
 NOTAS DEL ENTRENADOR:
 {notas}
 
-Devuelve ÚNICAMENTE un JSON válido (sin texto adicional) con esta estructura:
+Analiza el equipo rival por FASES DEL JUEGO. Sé específico, concreto y visual. Máximo 3-4 puntos por fase.
+
+Devuelve ÚNICAMENTE un JSON válido con esta estructura:
 
 {{
-    "sistema_tactico": "sistema detectado (ej: 4-3-3, 4-4-2, etc)",
-    "ataque_organizado": "Párrafo profesional describiendo cómo ataca el rival en fase organizada. Incluye: esquema posicional, jugadores clave, patrones de juego, amplitud/profundidad, circulación de balón.",
-    "defensa_organizada": "Párrafo profesional describiendo cómo defiende el rival. Incluye: altura del bloque, presión, coberturas, líneas defensivas, compactación.",
-    "transicion_def_atq": "Párrafo sobre cómo transiciona de defensa a ataque. Incluye: velocidad, verticalidad, jugadores implicados, patrones de contraataque.",
-    "transicion_atq_def": "Párrafo sobre cómo transiciona de ataque a defensa. Incluye: repliegue, pressing inmediato, reorganización.",
-    "abp": "Análisis de acciones a balón parado (córners, faltas, saques). Incluye: esquemas ofensivos y defensivos, efectividad.",
+    "sistema_tactico": "4-3-3",
+
+    "ataque": {{
+        "vs_bloque_alto": {{
+            "estructura": "Estructura de salida (ej: 4+1, portero+4 defensas+1 pivote)",
+            "triangulos": "Triángulos clave de pase (ej: 1-4-6, Portero-DC-Pivote)",
+            "patrones": ["Patrón 1", "Patrón 2", "Patrón 3"],
+            "debilidad": "Debilidad específica a explotar"
+        }},
+        "vs_bloque_medio": {{
+            "jugadores_clave": "Quiénes destacan en progresión",
+            "zonas_activas": "Bandas/centro, carrileros, etc",
+            "patrones": ["Patrón 1", "Patrón 2", "Patrón 3"],
+            "debilidad": "Debilidad específica"
+        }},
+        "vs_bloque_bajo": {{
+            "como_finalizan": "Centros, juego interior, etc",
+            "jugadores_area": "Quiénes rematan",
+            "patrones": ["Patrón 1", "Patrón 2"],
+            "debilidad": "Debilidad específica"
+        }}
+    }},
+
+    "defensa": {{
+        "pressing_alto": {{
+            "estructura": "Sistema defensivo (ej: 4-4-2, 4-1-3-2)",
+            "gatillos": "Cuándo presionan (ej: pase al DC)",
+            "patrones": ["Patrón 1", "Patrón 2"],
+            "fortaleza": "Punto fuerte defensivo"
+        }},
+        "bloque_medio": {{
+            "compactacion": "Distancia entre líneas, metros de bloque",
+            "coberturas": "Cómo cubren espacios",
+            "patrones": ["Patrón 1", "Patrón 2"],
+            "fortaleza": "Punto fuerte"
+        }},
+        "bloque_bajo": {{
+            "organizacion": "Cómo se organizan en área",
+            "marcajes": "Zona/individual/mixto",
+            "patrones": ["Patrón 1", "Patrón 2"],
+            "debilidad": "Debilidad específica"
+        }}
+    }},
+
+    "transiciones": {{
+        "def_atq": {{
+            "velocidad": "Rápida/lenta/media",
+            "jugadores_clave": "Quiénes protagonizan",
+            "patrones": ["Patrón 1", "Patrón 2"],
+            "como_cortar": "Cómo podemos cortarla"
+        }},
+        "atq_def": {{
+            "equilibrios": "Quiénes quedan en equilibrio al atacar",
+            "repliegue": "Rápido/lento, pressing o repliegue",
+            "patrones": ["Patrón 1", "Patrón 2"],
+            "desbalance": "Dónde están expuestos"
+        }}
+    }},
+
+    "abp": {{
+        "corners_favor": "Estructura, ejecutor, zonas",
+        "faltas_favor": "Ejecutores, estrategias",
+        "corners_contra": "Organización defensiva",
+        "debilidad": "Debilidad en ABP"
+    }},
+
     "jugadores_clave": [
-        {{"numero": "X", "descripcion": "Descripción del jugador: posición, características, nivel"}},
-        {{"numero": "Y", "descripcion": "..."}}
-    ],
-    "debilidades_rival": [
-        "Debilidad 1 específica que podemos explotar",
-        "Debilidad 2 específica que podemos explotar"
-    ],
-    "fortalezas_rival": [
-        "Fortaleza 1 del rival que debemos neutralizar",
-        "Fortaleza 2 del rival que debemos neutralizar"
+        {{
+            "numero": "10",
+            "nombre": "Apellido",
+            "posicion": "MC",
+            "nivel": "peligroso",
+            "caracteristicas": "Breve descripción"
+        }}
     ]
 }}"""
 
