@@ -4,10 +4,10 @@ Generador de Informes de Partido v2.0 PROFESIONAL
 Club Atlético Central
 
 PDF ultra-visual con:
-- Escudo vectorial del club
-- Campos tácticos con jugadores, flechas y zonas
+- Logo del club desde imagen externa
+- Campos tácticos DINÁMICOS generados por IA según el texto
 - Diseño profesional compacto
-- Mapas de juego para cada fase
+- Mapas de juego personalizados
 """
 
 from reportlab.lib import colors
@@ -18,9 +18,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.platypus import Image as RLImage
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.pdfgen import canvas
-from reportlab.graphics.shapes import Drawing, Rect, Circle, Line, String, Polygon, Wedge
+from reportlab.graphics.shapes import Drawing, Rect, Circle, Line, String, Polygon
 from reportlab.graphics import renderPDF
-from reportlab.graphics.widgets.markers import makeMarker
 from datetime import datetime
 import os
 import math
@@ -47,441 +46,225 @@ COLORES = {
     'blanco': colors.white,
     'campo_verde': colors.HexColor('#22C55E'),
     'campo_verde_oscuro': colors.HexColor('#16A34A'),
-    'campo_linea': colors.HexColor('#FFFFFF'),
+    'amarillo': colors.HexColor('#FBBF24'),
+}
+
+# Mapeo de nombres de colores a objetos Color
+COLOR_MAP = {
+    'rojo': colors.HexColor('#DC2626'),
+    'azul': colors.HexColor('#2563EB'),
+    'amarillo': colors.HexColor('#FBBF24'),
+    'verde': colors.HexColor('#22C55E'),
+    'naranja': colors.HexColor('#F59E0B'),
+    'blanco': colors.white,
+    'morado': colors.HexColor('#8B5CF6'),
 }
 
 
 # =============================================================================
-# ESCUDO CAC VECTORIAL
+# CAMPO TÁCTICO DINÁMICO
 # =============================================================================
-class EscudoCAC:
-    """Dibuja el escudo del Club Atlético Central"""
+class CampoDinamico:
+    """Dibuja campos de fútbol con instrucciones dinámicas de la IA"""
 
     @staticmethod
-    def crear_escudo(width=60, height=70):
-        """Crea el escudo vectorial del club"""
+    def crear_campo_base(width, height):
+        """Crea un campo de fútbol base con césped realista"""
         d = Drawing(width, height)
 
-        # Fondo del escudo (forma de escudo clásico)
-        # Base más ancha arriba, punta abajo
-        cx = width / 2
-
-        # Forma de escudo usando polígono
-        puntos_escudo = [
-            5, height - 5,           # Esquina superior izquierda
-            width - 5, height - 5,   # Esquina superior derecha
-            width - 5, height * 0.4, # Lado derecho
-            cx, 5,                   # Punta inferior
-            5, height * 0.4,         # Lado izquierdo
-        ]
-
-        # Fondo verde del escudo
-        d.add(Polygon(puntos_escudo,
-                     fillColor=COLORES['verde_principal'],
-                     strokeColor=COLORES['verde_oscuro'],
-                     strokeWidth=2))
-
-        # Banda diagonal blanca
-        d.add(Polygon([
-            10, height - 10,
-            25, height - 10,
-            width - 10, height * 0.35,
-            width - 25, height * 0.35,
-        ], fillColor=colors.white, strokeColor=None))
-
-        # Texto "CAC" en el centro
-        d.add(String(cx, height * 0.55, 'C',
-                    fontSize=16, fontName='Helvetica-Bold',
-                    fillColor=colors.white, textAnchor='middle'))
-        d.add(String(cx, height * 0.38, 'A',
-                    fontSize=12, fontName='Helvetica-Bold',
-                    fillColor=colors.white, textAnchor='middle'))
-        d.add(String(cx, height * 0.23, 'C',
-                    fontSize=10, fontName='Helvetica-Bold',
-                    fillColor=colors.white, textAnchor='middle'))
-
-        # Estrellas decorativas
-        d.add(String(15, height - 20, '★',
-                    fontSize=8, fillColor=colors.HexColor('#FFD700'),
-                    textAnchor='middle'))
-        d.add(String(width - 15, height - 20, '★',
-                    fontSize=8, fillColor=colors.HexColor('#FFD700'),
-                    textAnchor='middle'))
-
-        return d
-
-
-# =============================================================================
-# CAMPO TÁCTICO VISUAL
-# =============================================================================
-class CampoTactico:
-    """Dibuja campos de fútbol profesionales con jugadores, flechas y zonas"""
-
-    @staticmethod
-    def crear_campo_base(width, height, orientacion='horizontal'):
-        """Crea un campo de fútbol base"""
-        d = Drawing(width, height)
-
-        # Césped con gradiente simulado (franjas)
+        # Césped con franjas
         num_franjas = 8
-        franja_width = width / num_franjas if orientacion == 'horizontal' else height / num_franjas
+        franja_width = width / num_franjas
 
         for i in range(num_franjas):
             color = COLORES['campo_verde'] if i % 2 == 0 else COLORES['campo_verde_oscuro']
-            if orientacion == 'horizontal':
-                d.add(Rect(i * franja_width, 0, franja_width, height,
-                          fillColor=color, strokeColor=None))
-            else:
-                d.add(Rect(0, i * franja_width, width, franja_width,
-                          fillColor=color, strokeColor=None))
+            d.add(Rect(i * franja_width, 0, franja_width, height,
+                      fillColor=color, strokeColor=None))
 
         # Borde del campo
         d.add(Rect(2, 2, width - 4, height - 4,
                   fillColor=None, strokeColor=colors.white, strokeWidth=2))
 
-        if orientacion == 'horizontal':
-            # Línea central vertical
-            d.add(Line(width/2, 2, width/2, height - 2,
-                      strokeColor=colors.white, strokeWidth=1.5))
+        # Línea central vertical
+        d.add(Line(width/2, 2, width/2, height - 2,
+                  strokeColor=colors.white, strokeWidth=1.5))
 
-            # Círculo central
-            d.add(Circle(width/2, height/2, height/5,
-                        strokeColor=colors.white, strokeWidth=1.5, fillColor=None))
-            d.add(Circle(width/2, height/2, 3,
-                        fillColor=colors.white, strokeColor=None))
+        # Círculo central
+        d.add(Circle(width/2, height/2, height/5,
+                    strokeColor=colors.white, strokeWidth=1.5, fillColor=None))
+        d.add(Circle(width/2, height/2, 3,
+                    fillColor=colors.white, strokeColor=None))
 
-            # Área izquierda (portería local)
-            area_w = width * 0.16
-            area_h = height * 0.6
-            d.add(Rect(2, (height - area_h)/2, area_w, area_h,
-                      fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
-            # Área pequeña
-            area_p_w = width * 0.06
-            area_p_h = height * 0.3
-            d.add(Rect(2, (height - area_p_h)/2, area_p_w, area_p_h,
-                      fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+        # Área izquierda (portería propia)
+        area_w = width * 0.16
+        area_h = height * 0.6
+        d.add(Rect(2, (height - area_h)/2, area_w, area_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+        area_p_w = width * 0.06
+        area_p_h = height * 0.3
+        d.add(Rect(2, (height - area_p_h)/2, area_p_w, area_p_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
 
-            # Área derecha (portería rival)
-            d.add(Rect(width - 2 - area_w, (height - area_h)/2, area_w, area_h,
-                      fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
-            d.add(Rect(width - 2 - area_p_w, (height - area_p_h)/2, area_p_w, area_p_h,
-                      fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+        # Área derecha (portería rival)
+        d.add(Rect(width - 2 - area_w, (height - area_h)/2, area_w, area_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+        d.add(Rect(width - 2 - area_p_w, (height - area_p_h)/2, area_p_w, area_p_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
 
-            # Puntos de penalti
-            d.add(Circle(width * 0.12, height/2, 2,
-                        fillColor=colors.white, strokeColor=None))
-            d.add(Circle(width * 0.88, height/2, 2,
-                        fillColor=colors.white, strokeColor=None))
-        else:
-            # Orientación vertical
-            # Línea central horizontal
-            d.add(Line(2, height/2, width - 2, height/2,
-                      strokeColor=colors.white, strokeWidth=1.5))
-
-            # Círculo central
-            d.add(Circle(width/2, height/2, width/5,
-                        strokeColor=colors.white, strokeWidth=1.5, fillColor=None))
-            d.add(Circle(width/2, height/2, 3,
-                        fillColor=colors.white, strokeColor=None))
-
-            # Áreas
-            area_h = height * 0.16
-            area_w = width * 0.6
-            d.add(Rect((width - area_w)/2, 2, area_w, area_h,
-                      fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
-            d.add(Rect((width - area_w)/2, height - 2 - area_h, area_w, area_h,
-                      fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+        # Puntos de penalti
+        d.add(Circle(width * 0.12, height/2, 2,
+                    fillColor=colors.white, strokeColor=None))
+        d.add(Circle(width * 0.88, height/2, 2,
+                    fillColor=colors.white, strokeColor=None))
 
         return d
 
     @staticmethod
-    def agregar_jugador(d, x, y, numero='', color=colors.red, tamano=12, es_rival=True):
-        """Agrega un jugador al campo"""
-        # Círculo del jugador
-        fill = color if es_rival else colors.HexColor('#3B82F6')
-        d.add(Circle(x, y, tamano/2,
-                    fillColor=fill,
-                    strokeColor=colors.white,
-                    strokeWidth=1.5))
+    def aplicar_instrucciones(d, instrucciones, width, height):
+        """Aplica instrucciones de dibujo de la IA al campo"""
+        if not instrucciones:
+            return d
 
-        # Número del jugador
-        if numero:
-            d.add(String(x, y - 3, str(numero),
-                        fontSize=7, fontName='Helvetica-Bold',
-                        fillColor=colors.white, textAnchor='middle'))
+        # Dibujar zonas primero (debajo de todo)
+        for zona in instrucciones.get('zonas', []):
+            x = zona.get('x', 50) / 100 * width
+            y = zona.get('y', 50) / 100 * height
+            ancho = zona.get('ancho', 20) / 100 * width
+            alto = zona.get('alto', 30) / 100 * height
+            color = COLOR_MAP.get(zona.get('color', 'verde'), COLORES['verde_principal'])
 
-    @staticmethod
-    def agregar_flecha(d, x1, y1, x2, y2, color=colors.yellow, grosor=2, punta=True):
-        """Agrega una flecha de movimiento"""
-        d.add(Line(x1, y1, x2, y2,
-                  strokeColor=color, strokeWidth=grosor))
+            # Color semitransparente
+            zona_color = colors.Color(color.red, color.green, color.blue, alpha=0.3)
+            d.add(Rect(x, y, ancho, alto,
+                      fillColor=zona_color,
+                      strokeColor=color,
+                      strokeWidth=1,
+                      strokeDashArray=[3, 2]))
 
-        if punta:
-            # Calcular ángulo para la punta de flecha
+        # Dibujar línea táctica si está activa
+        linea = instrucciones.get('linea_tactica', {})
+        if linea.get('activa', False):
+            linea_x = linea.get('x', 50) / 100 * width
+            color = COLOR_MAP.get(linea.get('color', 'rojo'), COLORES['rojo'])
+            d.add(Line(linea_x, 5, linea_x, height - 5,
+                      strokeColor=color, strokeWidth=3, strokeDashArray=[8, 4]))
+
+        # Dibujar flechas
+        for flecha in instrucciones.get('flechas', []):
+            x1 = flecha.get('x1', 50) / 100 * width
+            y1 = flecha.get('y1', 50) / 100 * height
+            x2 = flecha.get('x2', 60) / 100 * width
+            y2 = flecha.get('y2', 50) / 100 * height
+            color = COLOR_MAP.get(flecha.get('color', 'amarillo'), COLORES['amarillo'])
+
+            # Línea
+            d.add(Line(x1, y1, x2, y2, strokeColor=color, strokeWidth=2))
+
+            # Punta de flecha
             angulo = math.atan2(y2 - y1, x2 - x1)
             tam_punta = 6
-
-            # Puntos de la punta
             px1 = x2 - tam_punta * math.cos(angulo - 0.5)
             py1 = y2 - tam_punta * math.sin(angulo - 0.5)
             px2 = x2 - tam_punta * math.cos(angulo + 0.5)
             py2 = y2 - tam_punta * math.sin(angulo + 0.5)
-
             d.add(Polygon([x2, y2, px1, py1, px2, py2],
                          fillColor=color, strokeColor=None))
 
-    @staticmethod
-    def agregar_zona(d, x, y, ancho, alto, color, alpha=0.3):
-        """Agrega una zona destacada"""
-        zona_color = colors.Color(color.red, color.green, color.blue, alpha=alpha)
-        d.add(Rect(x, y, ancho, alto,
-                  fillColor=zona_color,
-                  strokeColor=color,
-                  strokeWidth=1,
-                  strokeDashArray=[3, 2]))
+        # Dibujar jugadores (encima de todo)
+        for jugador in instrucciones.get('jugadores', []):
+            x = jugador.get('x', 50) / 100 * width
+            y = jugador.get('y', 50) / 100 * height
+            numero = jugador.get('numero', '')
+            destacado = jugador.get('destacado', False)
+            color_nombre = jugador.get('color', 'rojo')
 
-    @staticmethod
-    def crear_formacion_4_3_3(width, height, numeros=None):
-        """Crea un campo con formación 4-3-3 del rival"""
-        d = CampoTactico.crear_campo_base(width, height, 'horizontal')
+            # Tamaño según si está destacado
+            tamano = 16 if destacado else 12
+            color = COLOR_MAP.get(color_nombre, COLORES['rojo'])
 
-        # Posiciones para 4-3-3 (lado derecho = rival atacando hacia nuestra portería)
-        posiciones = [
-            (width * 0.92, height * 0.5),    # Portero
-            (width * 0.78, height * 0.15),   # LD
-            (width * 0.78, height * 0.38),   # DFC
-            (width * 0.78, height * 0.62),   # DFC
-            (width * 0.78, height * 0.85),   # LI
-            (width * 0.58, height * 0.25),   # MC
-            (width * 0.58, height * 0.5),    # MC (pivote)
-            (width * 0.58, height * 0.75),   # MC
-            (width * 0.35, height * 0.15),   # ED
-            (width * 0.30, height * 0.5),    # DC
-            (width * 0.35, height * 0.85),   # EI
-        ]
+            # Círculo del jugador
+            d.add(Circle(x, y, tamano/2,
+                        fillColor=color,
+                        strokeColor=colors.white,
+                        strokeWidth=1.5))
 
-        nums = numeros or ['1', '2', '4', '5', '3', '8', '6', '10', '7', '9', '11']
-
-        for i, (x, y) in enumerate(posiciones):
-            CampoTactico.agregar_jugador(d, x, y, nums[i] if i < len(nums) else '',
-                                         colors.red, tamano=14, es_rival=True)
+            # Número
+            if numero:
+                d.add(String(x, y - 3, str(numero),
+                            fontSize=7 if not destacado else 8,
+                            fontName='Helvetica-Bold',
+                            fillColor=colors.white,
+                            textAnchor='middle'))
 
         return d
 
     @staticmethod
-    def crear_campo_pressing(width, height, tipo='alto'):
-        """Crea campo mostrando línea de pressing"""
-        d = CampoTactico.crear_campo_base(width, height, 'horizontal')
-
-        # Línea de pressing según tipo
-        if tipo == 'alto':
-            linea_x = width * 0.70
-            zona_color = colors.HexColor('#DC2626')
-        elif tipo == 'medio':
-            linea_x = width * 0.50
-            zona_color = colors.HexColor('#F59E0B')
-        else:
-            linea_x = width * 0.30
-            zona_color = colors.HexColor('#3B82F6')
-
-        # Zona de presión
-        CampoTactico.agregar_zona(d, linea_x - 20, 5, 30, height - 10, zona_color, 0.3)
-
-        # Línea de presión
-        d.add(Line(linea_x, 5, linea_x, height - 5,
-                  strokeColor=zona_color, strokeWidth=3, strokeDashArray=[8, 4]))
-
-        # Posiciones defensivas del rival (simplificadas)
-        jugadores_def = [
-            (width * 0.88, height * 0.5, '1'),   # GK
-            (width * 0.75, height * 0.2, '2'),   # LD
-            (width * 0.75, height * 0.4, '4'),   # DFC
-            (width * 0.75, height * 0.6, '5'),   # DFC
-            (width * 0.75, height * 0.8, '3'),   # LI
-        ]
-
-        for x, y, num in jugadores_def:
-            CampoTactico.agregar_jugador(d, x, y, num, colors.red, 12, True)
-
-        # Flechas de pressing (nuestros jugadores presionando)
-        if tipo == 'alto':
-            CampoTactico.agregar_flecha(d, width * 0.55, height * 0.5,
-                                        width * 0.68, height * 0.5, colors.yellow, 2)
-            CampoTactico.agregar_flecha(d, width * 0.50, height * 0.25,
-                                        width * 0.65, height * 0.25, colors.yellow, 2)
-            CampoTactico.agregar_flecha(d, width * 0.50, height * 0.75,
-                                        width * 0.65, height * 0.75, colors.yellow, 2)
-
-        return d
-
-    @staticmethod
-    def crear_campo_transicion(width, height, tipo='def_atq'):
-        """Crea campo mostrando transición"""
-        d = CampoTactico.crear_campo_base(width, height, 'horizontal')
-
-        if tipo == 'def_atq':
-            # Transición defensa-ataque (contraataque)
-            color_flecha = colors.HexColor('#22C55E')
-
-            # Recuperación en zona media
-            CampoTactico.agregar_zona(d, width * 0.35, height * 0.3,
-                                      width * 0.15, height * 0.4,
-                                      colors.HexColor('#22C55E'), 0.3)
-
-            # Flechas de contraataque
-            CampoTactico.agregar_flecha(d, width * 0.45, height * 0.5,
-                                        width * 0.25, height * 0.5, color_flecha, 3)
-            CampoTactico.agregar_flecha(d, width * 0.40, height * 0.3,
-                                        width * 0.20, height * 0.15, color_flecha, 2)
-            CampoTactico.agregar_flecha(d, width * 0.40, height * 0.7,
-                                        width * 0.20, height * 0.85, color_flecha, 2)
-
-            # Jugadores clave en transición
-            CampoTactico.agregar_jugador(d, width * 0.45, height * 0.5, '10',
-                                         colors.HexColor('#FBBF24'), 14, True)
-            CampoTactico.agregar_jugador(d, width * 0.30, height * 0.2, '7',
-                                         colors.red, 12, True)
-            CampoTactico.agregar_jugador(d, width * 0.30, height * 0.8, '11',
-                                         colors.red, 12, True)
-        else:
-            # Transición ataque-defensa (repliegue)
-            color_flecha = colors.HexColor('#EF4444')
-
-            # Zona de desorden
-            CampoTactico.agregar_zona(d, width * 0.55, height * 0.2,
-                                      width * 0.25, height * 0.6,
-                                      colors.HexColor('#EF4444'), 0.25)
-
-            # Flechas de repliegue
-            CampoTactico.agregar_flecha(d, width * 0.30, height * 0.5,
-                                        width * 0.55, height * 0.5, color_flecha, 2)
-            CampoTactico.agregar_flecha(d, width * 0.25, height * 0.2,
-                                        width * 0.50, height * 0.3, color_flecha, 2)
-            CampoTactico.agregar_flecha(d, width * 0.25, height * 0.8,
-                                        width * 0.50, height * 0.7, color_flecha, 2)
-
-        return d
-
-    @staticmethod
-    def crear_campo_ataque(width, height, fase='alto'):
-        """Crea campo mostrando fase de ataque del rival"""
-        d = CampoTactico.crear_campo_base(width, height, 'horizontal')
-
-        if fase == 'alto':
-            # VS bloque alto - Salida de balón
-            # Zona de salida
-            CampoTactico.agregar_zona(d, width * 0.70, height * 0.25,
-                                      width * 0.20, height * 0.5,
-                                      COLORES['verde_principal'], 0.3)
-
-            # Triángulos de pase
-            CampoTactico.agregar_jugador(d, width * 0.88, height * 0.5, '1',
-                                         colors.HexColor('#FBBF24'), 14, True)
-            CampoTactico.agregar_jugador(d, width * 0.75, height * 0.35, '4',
-                                         colors.red, 12, True)
-            CampoTactico.agregar_jugador(d, width * 0.75, height * 0.65, '5',
-                                         colors.red, 12, True)
-            CampoTactico.agregar_jugador(d, width * 0.60, height * 0.5, '6',
-                                         colors.HexColor('#FBBF24'), 14, True)
-
-            # Flechas de pase
-            CampoTactico.agregar_flecha(d, width * 0.85, height * 0.5,
-                                        width * 0.77, height * 0.38, colors.white, 1.5)
-            CampoTactico.agregar_flecha(d, width * 0.73, height * 0.37,
-                                        width * 0.63, height * 0.48, colors.white, 1.5)
-            CampoTactico.agregar_flecha(d, width * 0.73, height * 0.63,
-                                        width * 0.63, height * 0.52, colors.white, 1.5)
-
-        elif fase == 'medio':
-            # VS bloque medio - Progresión
-            CampoTactico.agregar_zona(d, width * 0.40, height * 0.15,
-                                      width * 0.25, height * 0.70,
-                                      COLORES['naranja'], 0.25)
-
-            # Jugadores en zona de creación
-            CampoTactico.agregar_jugador(d, width * 0.55, height * 0.5, '8',
-                                         colors.HexColor('#FBBF24'), 14, True)
-            CampoTactico.agregar_jugador(d, width * 0.50, height * 0.25, '10',
-                                         colors.HexColor('#FBBF24'), 14, True)
-            CampoTactico.agregar_jugador(d, width * 0.40, height * 0.15, '7',
-                                         colors.red, 12, True)
-            CampoTactico.agregar_jugador(d, width * 0.40, height * 0.85, '11',
-                                         colors.red, 12, True)
-
-            # Flechas de progresión
-            CampoTactico.agregar_flecha(d, width * 0.52, height * 0.5,
-                                        width * 0.35, height * 0.5, colors.yellow, 2)
-            CampoTactico.agregar_flecha(d, width * 0.48, height * 0.27,
-                                        width * 0.38, height * 0.20, colors.yellow, 2)
-
-        else:
-            # VS bloque bajo - Finalización
-            CampoTactico.agregar_zona(d, width * 0.08, height * 0.20,
-                                      width * 0.22, height * 0.60,
-                                      COLORES['rojo'], 0.3)
-
-            # Jugadores en área
-            CampoTactico.agregar_jugador(d, width * 0.22, height * 0.5, '9',
-                                         colors.HexColor('#EF4444'), 16, True)
-            CampoTactico.agregar_jugador(d, width * 0.25, height * 0.30, '7',
-                                         colors.red, 12, True)
-            CampoTactico.agregar_jugador(d, width * 0.25, height * 0.70, '11',
-                                         colors.red, 12, True)
-
-            # Centro lateral
-            CampoTactico.agregar_flecha(d, width * 0.35, height * 0.10,
-                                        width * 0.22, height * 0.40, colors.yellow, 2)
-            CampoTactico.agregar_flecha(d, width * 0.35, height * 0.90,
-                                        width * 0.22, height * 0.60, colors.yellow, 2)
-
+    def crear_campo_con_instrucciones(width, height, instrucciones):
+        """Crea un campo completo con instrucciones de la IA"""
+        d = CampoDinamico.crear_campo_base(width, height)
+        d = CampoDinamico.aplicar_instrucciones(d, instrucciones, width, height)
         return d
 
 
 # =============================================================================
-# ICONOS Y ELEMENTOS VISUALES
+# UTILIDADES
 # =============================================================================
-class Iconos:
-    """Iconos visuales para el PDF"""
+def obtener_logo_path():
+    """Obtiene la ruta del logo del club"""
+    # Buscar en varios lugares posibles
+    posibles_rutas = [
+        os.path.join(os.path.dirname(__file__), 'static', 'logo.png'),
+        os.path.join(os.path.dirname(__file__), 'logo.png'),
+        os.path.join(os.path.dirname(__file__), 'static', 'images', 'logo.png'),
+        '/home/user/informes-cac-webapp/static/logo.png',
+        '/home/user/informes-cac-webapp/logo.png',
+    ]
 
-    @staticmethod
-    def crear_icono_nivel(nivel, size=20):
-        """Crea un icono visual del nivel del jugador"""
-        d = Drawing(size, size)
+    for ruta in posibles_rutas:
+        if os.path.exists(ruta):
+            return ruta
 
-        if nivel == 'peligroso':
-            # Triángulo de peligro rojo
-            d.add(Polygon([size/2, size-2, 2, 2, size-2, 2],
-                         fillColor=colors.HexColor('#DC2626'),
-                         strokeColor=colors.white, strokeWidth=1))
-            d.add(String(size/2, 6, '!',
-                        fontSize=10, fontName='Helvetica-Bold',
-                        fillColor=colors.white, textAnchor='middle'))
-        elif nivel == 'importante':
-            # Estrella amarilla
-            d.add(Circle(size/2, size/2, size/2-1,
-                        fillColor=colors.HexColor('#F59E0B'),
-                        strokeColor=colors.white, strokeWidth=1))
-            d.add(String(size/2, size/2-4, '★',
-                        fontSize=12, fillColor=colors.white, textAnchor='middle'))
-        else:
-            # Círculo gris
-            d.add(Circle(size/2, size/2, size/2-1,
-                        fillColor=colors.HexColor('#9CA3AF'),
-                        strokeColor=colors.white, strokeWidth=1))
+    return None
 
-        return d
+
+def crear_logo_placeholder(width=50, height=60):
+    """Crea un placeholder si no hay logo"""
+    d = Drawing(width, height)
+
+    # Forma de escudo
+    cx = width / 2
+    puntos_escudo = [
+        5, height - 5,
+        width - 5, height - 5,
+        width - 5, height * 0.4,
+        cx, 5,
+        5, height * 0.4,
+    ]
+
+    d.add(Polygon(puntos_escudo,
+                 fillColor=COLORES['verde_principal'],
+                 strokeColor=COLORES['verde_oscuro'],
+                 strokeWidth=2))
+
+    # Texto "CAC"
+    d.add(String(cx, height * 0.5, 'CAC',
+                fontSize=12, fontName='Helvetica-Bold',
+                fillColor=colors.white, textAnchor='middle'))
+
+    return d
 
 
 # =============================================================================
 # GENERADOR PDF PRINCIPAL
 # =============================================================================
-def generar_informe_v2_pdf(datos, output_path):
+def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
     """
     Genera un PDF profesional ultra-visual con análisis táctico
 
     Args:
         datos: Diccionario con todos los datos del formulario v2
         output_path: Ruta donde guardar el PDF
+        dibujos_ia: Diccionario con instrucciones de dibujo generadas por IA (opcional)
     """
 
     # Configuración del documento
@@ -567,16 +350,28 @@ def generar_informe_v2_pdf(datos, output_path):
     )
 
     # ==================================================================
-    # HEADER CON ESCUDO
+    # HEADER CON LOGO
     # ==================================================================
-    escudo = EscudoCAC.crear_escudo(50, 60)
+    logo_path = obtener_logo_path()
+
+    # Crear elemento de logo (imagen real o placeholder)
+    if logo_path:
+        try:
+            logo_img = RLImage(logo_path, width=50, height=60)
+            logo_img_right = RLImage(logo_path, width=50, height=60)
+        except:
+            logo_img = crear_logo_placeholder(50, 60)
+            logo_img_right = crear_logo_placeholder(50, 60)
+    else:
+        logo_img = crear_logo_placeholder(50, 60)
+        logo_img_right = crear_logo_placeholder(50, 60)
 
     rival = datos.get('nombre_rival', 'RIVAL').upper()
     jornada = datos.get('jornada', '-')
     fecha = datetime.now().strftime('%d/%m/%Y')
 
     header_data = [[
-        escudo,
+        logo_img,
         [Paragraph(f'<b>INFORME TÁCTICO</b>', style_titulo),
          Paragraph(f'vs {rival}', ParagraphStyle('rival', fontSize=14,
                    textColor=COLORES['verde_principal'], alignment=TA_CENTER,
@@ -584,7 +379,7 @@ def generar_informe_v2_pdf(datos, output_path):
          Paragraph(f'Jornada {jornada} · {fecha}',
                   ParagraphStyle('fecha', fontSize=9, textColor=COLORES['gris'],
                                 alignment=TA_CENTER))],
-        escudo
+        logo_img_right
     ]]
 
     header_table = Table(header_data, colWidths=[60, ancho_pagina - 120, 60])
@@ -642,16 +437,26 @@ def generar_informe_v2_pdf(datos, output_path):
     col_width = ancho_pagina / 3 - 2
     campo_size = (col_width - 10, 4.5*cm)
 
-    def crear_celda_ataque(fase_data, titulo, campo):
-        """Crea celda visual para fase de ataque"""
+    # Obtener instrucciones de dibujo de la IA
+    dibujos_ataque = {}
+    if dibujos_ia:
+        dibujos_ataque = dibujos_ia.get('ataque', {})
+
+    def crear_celda_ataque(fase_data, titulo, tipo_fase):
+        """Crea celda visual para fase de ataque con campo dinámico"""
         contenido = []
         contenido.append(Paragraph(f'<b>{titulo}</b>', style_seccion))
         contenido.append(Spacer(1, 2))
+
+        # Campo con instrucciones de IA
+        instrucciones = dibujos_ataque.get(tipo_fase, {})
+        campo = CampoDinamico.crear_campo_con_instrucciones(
+            campo_size[0], campo_size[1], instrucciones
+        )
         contenido.append(campo)
         contenido.append(Spacer(1, 3))
 
         if fase_data:
-            # Datos principales (compactos)
             if fase_data.get('estructura'):
                 contenido.append(Paragraph(f'<b>→</b> {fase_data["estructura"][:60]}', style_texto))
             if fase_data.get('triangulos'):
@@ -663,14 +468,12 @@ def generar_informe_v2_pdf(datos, output_path):
             if fase_data.get('como_finalizan'):
                 contenido.append(Paragraph(f'<b>⚽</b> {fase_data["como_finalizan"][:50]}', style_texto))
 
-            # Patrones (máximo 2)
             patrones = fase_data.get('patrones', [])
             if patrones:
                 for p in patrones[:2]:
                     if p:
                         contenido.append(Paragraph(f'• {p[:45]}', style_texto))
 
-            # Fortaleza/Debilidad
             if fase_data.get('fortaleza'):
                 contenido.append(Paragraph(f'<b>💪</b> {fase_data["fortaleza"][:40]}', style_fortaleza))
             if fase_data.get('debilidad'):
@@ -678,19 +481,14 @@ def generar_informe_v2_pdf(datos, output_path):
 
         return contenido
 
-    # Crear campos tácticos para cada fase
-    campo_alto = CampoTactico.crear_campo_ataque(campo_size[0], campo_size[1], 'alto')
-    campo_medio = CampoTactico.crear_campo_ataque(campo_size[0], campo_size[1], 'medio')
-    campo_bajo = CampoTactico.crear_campo_ataque(campo_size[0], campo_size[1], 'bajo')
-
     vs_alto = ataque.get('vs_bloque_alto', {})
     vs_medio = ataque.get('vs_bloque_medio', {})
     vs_bajo = ataque.get('vs_bloque_bajo', {})
 
     ataque_row = [
-        crear_celda_ataque(vs_alto, 'VS BLOQUE ALTO', campo_alto),
-        crear_celda_ataque(vs_medio, 'VS BLOQUE MEDIO', campo_medio),
-        crear_celda_ataque(vs_bajo, 'VS BLOQUE BAJO', campo_bajo)
+        crear_celda_ataque(vs_alto, 'VS BLOQUE ALTO', 'vs_bloque_alto'),
+        crear_celda_ataque(vs_medio, 'VS BLOQUE MEDIO', 'vs_bloque_medio'),
+        crear_celda_ataque(vs_bajo, 'VS BLOQUE BAJO', 'vs_bloque_bajo')
     ]
 
     ataque_table = Table([ataque_row], colWidths=[col_width + 1]*3)
@@ -719,14 +517,20 @@ def generar_informe_v2_pdf(datos, output_path):
     story.append(Spacer(1, 0.2*cm))
 
     defensa = datos.get('defensa', {})
+    dibujos_defensa = {}
+    if dibujos_ia:
+        dibujos_defensa = dibujos_ia.get('defensa', {})
 
-    def crear_celda_defensa(fase_data, titulo, tipo_pressing):
-        """Crea celda visual para fase defensiva"""
-        campo = CampoTactico.crear_campo_pressing(campo_size[0], campo_size[1], tipo_pressing)
-
+    def crear_celda_defensa(fase_data, titulo, tipo_fase):
+        """Crea celda visual para fase defensiva con campo dinámico"""
         contenido = []
         contenido.append(Paragraph(f'<b>{titulo}</b>', style_seccion))
         contenido.append(Spacer(1, 2))
+
+        instrucciones = dibujos_defensa.get(tipo_fase, {})
+        campo = CampoDinamico.crear_campo_con_instrucciones(
+            campo_size[0], campo_size[1], instrucciones
+        )
         contenido.append(campo)
         contenido.append(Spacer(1, 3))
 
@@ -761,9 +565,9 @@ def generar_informe_v2_pdf(datos, output_path):
     bloque_bajo = defensa.get('bloque_bajo', {})
 
     defensa_row = [
-        crear_celda_defensa(pressing, 'PRESSING ALTO', 'alto'),
-        crear_celda_defensa(bloque_medio, 'BLOQUE MEDIO', 'medio'),
-        crear_celda_defensa(bloque_bajo, 'BLOQUE BAJO', 'bajo')
+        crear_celda_defensa(pressing, 'PRESSING ALTO', 'pressing_alto'),
+        crear_celda_defensa(bloque_medio, 'BLOQUE MEDIO', 'bloque_medio'),
+        crear_celda_defensa(bloque_bajo, 'BLOQUE BAJO', 'bloque_bajo')
     ]
 
     defensa_table = Table([defensa_row], colWidths=[col_width + 1]*3)
@@ -794,16 +598,23 @@ def generar_informe_v2_pdf(datos, output_path):
     story.append(Spacer(1, 0.2*cm))
 
     transiciones = datos.get('transiciones', {})
+    dibujos_trans = {}
+    if dibujos_ia:
+        dibujos_trans = dibujos_ia.get('transiciones', {})
+
     campo_trans_w = ancho_pagina / 2 - 10
     campo_trans_h = 5*cm
 
     def crear_celda_transicion(fase_data, titulo, tipo):
-        """Crea celda visual para transición"""
-        campo = CampoTactico.crear_campo_transicion(campo_trans_w - 10, campo_trans_h, tipo)
-
+        """Crea celda visual para transición con campo dinámico"""
         contenido = []
         contenido.append(Paragraph(f'<b>{titulo}</b>', style_seccion))
         contenido.append(Spacer(1, 3))
+
+        instrucciones = dibujos_trans.get(tipo, {})
+        campo = CampoDinamico.crear_campo_con_instrucciones(
+            campo_trans_w - 10, campo_trans_h, instrucciones
+        )
         contenido.append(campo)
         contenido.append(Spacer(1, 4))
 
@@ -865,19 +676,15 @@ def generar_informe_v2_pdf(datos, output_path):
     story.append(Spacer(1, 0.2*cm))
 
     abp = datos.get('abp', {})
+    dibujos_abp = {}
+    if dibujos_ia:
+        dibujos_abp = dibujos_ia.get('abp', {})
 
-    # Crear campo ABP visual
-    campo_abp = CampoTactico.crear_campo_base(ancho_pagina * 0.4, 4*cm, 'horizontal')
-    # Agregar zona de corner
-    CampoTactico.agregar_zona(campo_abp, 5, 5, ancho_pagina * 0.08, 3.5*cm,
-                              COLORES['morado'], 0.4)
-    # Jugadores en área
-    CampoTactico.agregar_jugador(campo_abp, ancho_pagina * 0.12, 2.5*cm, '9', colors.red, 12, True)
-    CampoTactico.agregar_jugador(campo_abp, ancho_pagina * 0.10, 1.5*cm, '4', colors.red, 10, True)
-    CampoTactico.agregar_jugador(campo_abp, ancho_pagina * 0.14, 3.2*cm, '5', colors.red, 10, True)
-    # Flecha de corner
-    CampoTactico.agregar_flecha(campo_abp, ancho_pagina * 0.02, 3.8*cm,
-                                ancho_pagina * 0.10, 2.8*cm, colors.yellow, 2)
+    # Campo ABP con instrucciones de IA
+    instrucciones_abp = dibujos_abp.get('corners', {})
+    campo_abp = CampoDinamico.crear_campo_con_instrucciones(
+        ancho_pagina * 0.4, 4*cm, instrucciones_abp
+    )
 
     abp_info = []
     if abp.get('corners_favor'):
@@ -891,8 +698,8 @@ def generar_informe_v2_pdf(datos, output_path):
     if abp.get('fortaleza'):
         abp_info.append(Paragraph(f'<b>💪 Fortaleza:</b> {abp["fortaleza"]}', style_fortaleza))
 
-    if abp_info:
-        abp_row = [[campo_abp, abp_info]]
+    if abp_info or instrucciones_abp:
+        abp_row = [[campo_abp, abp_info if abp_info else [Paragraph('', style_texto)]]]
         abp_table = Table(abp_row, colWidths=[ancho_pagina * 0.45, ancho_pagina * 0.55])
         abp_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), COLORES['morado_claro']),
@@ -920,7 +727,6 @@ def generar_informe_v2_pdf(datos, output_path):
     jugadores = datos.get('jugadores_clave', [])
 
     if jugadores:
-        # Crear cards visuales para cada jugador
         jugador_cards = []
         card_width = ancho_pagina / 3 - 5
 
@@ -931,35 +737,32 @@ def generar_informe_v2_pdf(datos, output_path):
             nivel = jugador.get('nivel', 'normal')
             caracteristicas = jugador.get('caracteristicas', '-')
 
-            # Icono de nivel
-            icono = Iconos.crear_icono_nivel(nivel, 18)
-
-            # Color de fondo según nivel
             if nivel == 'peligroso':
-                bg_color = colors.HexColor('#FEE2E2')
                 border_color = colors.HexColor('#DC2626')
                 nivel_text = 'PELIGROSO'
             elif nivel == 'importante':
-                bg_color = colors.HexColor('#FEF3C7')
                 border_color = colors.HexColor('#F59E0B')
                 nivel_text = 'IMPORTANTE'
             else:
-                bg_color = colors.HexColor('#F3F4F6')
                 border_color = colors.HexColor('#9CA3AF')
                 nivel_text = 'NORMAL'
 
-            # Crear mini campo con jugador
+            # Mini campo con jugador
             mini_campo = Drawing(card_width - 20, 2.5*cm)
             mini_campo.add(Rect(0, 0, card_width - 20, 2.5*cm,
                                fillColor=COLORES['campo_verde'],
                                strokeColor=COLORES['campo_verde_oscuro'],
                                strokeWidth=1))
-            # Línea central
             mini_campo.add(Line((card_width-20)/2, 0, (card_width-20)/2, 2.5*cm,
                                strokeColor=colors.white, strokeWidth=1))
             # Jugador destacado
-            CampoTactico.agregar_jugador(mini_campo, (card_width-20)/2, 1.25*cm,
-                                         numero, border_color, 20, True)
+            mini_campo.add(Circle((card_width-20)/2, 1.25*cm, 10,
+                                 fillColor=border_color,
+                                 strokeColor=colors.white,
+                                 strokeWidth=1.5))
+            mini_campo.add(String((card_width-20)/2, 1.25*cm - 3, str(numero),
+                                 fontSize=8, fontName='Helvetica-Bold',
+                                 fillColor=colors.white, textAnchor='middle'))
 
             card_content = [
                 Paragraph(f'<b>#{numero} {nombre}</b>',
@@ -985,7 +788,6 @@ def generar_informe_v2_pdf(datos, output_path):
 
             jugador_cards.append(card_content)
 
-        # Rellenar si hay menos de 3 jugadores
         while len(jugador_cards) < 3:
             jugador_cards.append([Paragraph('', style_texto)])
 
@@ -1009,14 +811,25 @@ def generar_informe_v2_pdf(datos, output_path):
     # ==================================================================
     story.append(Spacer(1, 0.5*cm))
 
-    footer_escudo = EscudoCAC.crear_escudo(30, 35)
+    # Logo en footer
+    if logo_path:
+        try:
+            footer_logo = RLImage(logo_path, width=30, height=35)
+            footer_logo_right = RLImage(logo_path, width=30, height=35)
+        except:
+            footer_logo = crear_logo_placeholder(30, 35)
+            footer_logo_right = crear_logo_placeholder(30, 35)
+    else:
+        footer_logo = crear_logo_placeholder(30, 35)
+        footer_logo_right = crear_logo_placeholder(30, 35)
+
     footer_text = Paragraph(
         f'<i>Club Atlético Central · Informe generado el {datetime.now().strftime("%d/%m/%Y %H:%M")}</i>',
         ParagraphStyle('footer', fontSize=8, textColor=COLORES['gris'],
                       alignment=TA_CENTER)
     )
 
-    footer_row = [[footer_escudo, footer_text, footer_escudo]]
+    footer_row = [[footer_logo, footer_text, footer_logo_right]]
     footer_table = Table(footer_row, colWidths=[40, ancho_pagina - 80, 40])
     footer_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -1118,21 +931,21 @@ if __name__ == "__main__":
                 'nombre': 'Pedri',
                 'posicion': 'MC',
                 'nivel': 'peligroso',
-                'caracteristicas': 'Organizador del juego, gran visión de pase, difícil de presionar, clave en transiciones'
+                'caracteristicas': 'Organizador del juego, gran visión de pase'
             },
             {
                 'numero': '9',
                 'nombre': 'Lewandowski',
                 'posicion': 'DC',
                 'nivel': 'peligroso',
-                'caracteristicas': 'Goleador nato, movimientos en área, potente remate de cabeza, finalización letal'
+                'caracteristicas': 'Goleador nato, remate de cabeza'
             },
             {
                 'numero': '8',
                 'nombre': 'De Jong',
                 'posicion': 'MC',
                 'nivel': 'importante',
-                'caracteristicas': 'Recuperador, buena conducción, apoya en construcción desde atrás'
+                'caracteristicas': 'Recuperador, buena conducción'
             }
         ]
     }

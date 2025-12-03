@@ -551,6 +551,117 @@
             margin-bottom: 10px;
             font-size: 14px;
         }
+
+        /* Modal de Previsualización */
+        .preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .preview-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-header {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .close-preview-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-preview-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .preview-body {
+            flex: 1;
+            overflow: auto;
+            padding: 0;
+            background: #f5f5f5;
+        }
+
+        .preview-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #F9FAFB;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .loading-spinner-large {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: #10B981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: #9CA3AF;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -1093,7 +1204,7 @@
 
                     <div class="alert alert-info active">
                         <strong>ℹ️ Resumen del Informe</strong><br>
-                        Revisa toda la información antes de generar el PDF. El informe será visual, compacto y profesional (máximo 2 páginas).
+                        Revisa toda la información. Primero genera la previsualización con los mapas tácticos de IA, y luego descarga el PDF.
                     </div>
 
                     <div id="resumen" style="background: #F9FAFB; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -1103,11 +1214,43 @@
                         <p><strong>Sistema:</strong> <span id="resumen_sistema">-</span></p>
                     </div>
 
-                    <div class="button-group">
+                    <div style="background: #EDE9FE; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #8B5CF6;">
+                        <h4 style="color: #6D28D9; margin-bottom: 10px;">🤖 Dibujos Tácticos con IA</h4>
+                        <p style="color: #7C3AED; font-size: 13px; margin-bottom: 10px;">
+                            La IA genera los mapas tácticos automáticamente según el texto que escribiste en cada sección.
+                        </p>
+                        <div id="dibujosStatus" style="font-size: 12px; color: #6B7280; margin-bottom: 10px;">
+                            Estado: <span id="dibujosStatusText">Sin generar</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group" style="flex-wrap: wrap; gap: 10px;">
                         <button type="button" class="btn btn-secondary" onclick="prevStep()">← Anterior</button>
-                        <button type="button" class="btn btn-primary" onclick="generarPDF()" style="background: #DC2626;">
+                        <button type="button" class="btn btn-primary" onclick="previsualizarPDF()" id="btnPrevisualizar" style="background: #8B5CF6;">
+                            👁️ Previsualizar PDF
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="descargarPDFDirecto()" id="btnDescargar" style="background: #DC2626;">
                             📥 Descargar PDF
                         </button>
+                    </div>
+                </div>
+
+                <!-- Modal de Previsualización -->
+                <div id="previewModal" class="preview-modal" style="display: none;">
+                    <div class="preview-modal-content">
+                        <div class="preview-header">
+                            <h3>📄 Previsualización del Informe</h3>
+                            <button onclick="cerrarPreview()" class="close-preview-btn">×</button>
+                        </div>
+                        <div class="preview-body">
+                            <iframe id="pdfPreviewFrame" style="width: 100%; height: 70vh; border: none;"></iframe>
+                        </div>
+                        <div class="preview-footer">
+                            <button type="button" class="btn btn-secondary" onclick="cerrarPreview()">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="descargarDesdePreview()" style="background: #DC2626;">
+                                📥 Descargar PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1162,9 +1305,19 @@ Ejemplo:
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner-large"></div>
+        <div class="loading-text" id="loadingText">Generando mapas tácticos con IA...</div>
+        <div class="loading-subtext" id="loadingSubtext">Esto puede tardar unos segundos</div>
+    </div>
+
     <script>
         let currentStep = 0;
         const totalSteps = 7;
+        let dibujosIA = null;  // Almacena los dibujos generados por IA
+        let pdfBase64 = null;  // Almacena el PDF para descarga
+        let nombreArchivo = '';  // Nombre del archivo PDF
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -1438,17 +1591,8 @@ Ejemplo:
             console.log('✅ Todos los campos auto-rellenados');
         }
 
-        // Generate PDF
-        async function generarPDF() {
-            if (!validateBasicInfo()) {
-                alert('Por favor completa la información básica antes de generar el PDF');
-                currentStep = 0;
-                showStep(currentStep);
-                updateProgress();
-                return;
-            }
-
-            // Recopilar todos los datos
+        // Recopilar datos del formulario
+        function recopilarDatos() {
             const datos = {
                 // Info básica
                 nombre_rival: document.getElementById('nombre_rival').value,
@@ -1554,26 +1698,158 @@ Ejemplo:
                 }
             }
 
-            console.log('Datos a enviar:', datos);
+            return datos;
+        }
+
+        // Mostrar/ocultar loading overlay
+        function mostrarLoading(texto, subtexto) {
+            document.getElementById('loadingText').textContent = texto || 'Cargando...';
+            document.getElementById('loadingSubtext').textContent = subtexto || '';
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function ocultarLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // Generar dibujos con IA
+        async function generarDibujosIA(datos) {
+            try {
+                const response = await fetch('/generar_dibujos_ia', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    dibujosIA = result.dibujos;
+                    document.getElementById('dibujosStatusText').textContent = '✅ Dibujos generados';
+                    document.getElementById('dibujosStatusText').style.color = '#059669';
+                    return true;
+                } else {
+                    console.warn('Error generando dibujos IA:', result.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                return false;
+            }
+        }
+
+        // Previsualizar PDF
+        async function previsualizarPDF() {
+            if (!validateBasicInfo()) {
+                alert('Por favor completa la información básica antes de previsualizar');
+                currentStep = 0;
+                showStep(currentStep);
+                updateProgress();
+                return;
+            }
+
+            const datos = recopilarDatos();
+            console.log('Datos para previsualización:', datos);
+
+            mostrarLoading('Generando mapas tácticos con IA...', 'Analizando el texto para crear los dibujos');
 
             try {
+                // Paso 1: Generar dibujos con IA
+                await generarDibujosIA(datos);
+
+                // Paso 2: Generar previsualización del PDF
+                mostrarLoading('Generando previsualización del PDF...', 'Creando el informe visual');
+
+                const datosConDibujos = { ...datos, dibujos_ia: dibujosIA };
+                const response = await fetch('/previsualizar_v2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosConDibujos)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    pdfBase64 = result.pdf_base64;
+                    nombreArchivo = result.nombre_archivo;
+
+                    // Mostrar en el iframe
+                    const pdfBlob = base64ToBlob(pdfBase64, 'application/pdf');
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+                    document.getElementById('pdfPreviewFrame').src = pdfUrl;
+
+                    // Mostrar modal
+                    document.getElementById('previewModal').style.display = 'flex';
+                } else {
+                    alert('Error al generar la previsualización: ' + (result.error || 'Error desconocido'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al generar la previsualización: ' + error.message);
+            } finally {
+                ocultarLoading();
+            }
+        }
+
+        // Cerrar modal de previsualización
+        function cerrarPreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        // Descargar desde previsualización
+        function descargarDesdePreview() {
+            if (pdfBase64) {
+                const pdfBlob = base64ToBlob(pdfBase64, 'application/pdf');
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nombreArchivo || 'Informe_v2.pdf';
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(url);
+                a.remove();
+                cerrarPreview();
+            }
+        }
+
+        // Descargar PDF directamente (sin previsualización)
+        async function descargarPDFDirecto() {
+            if (!validateBasicInfo()) {
+                alert('Por favor completa la información básica antes de descargar');
+                currentStep = 0;
+                showStep(currentStep);
+                updateProgress();
+                return;
+            }
+
+            const datos = recopilarDatos();
+            console.log('Datos para descarga:', datos);
+
+            mostrarLoading('Generando mapas tácticos con IA...', 'Analizando el texto para crear los dibujos');
+
+            try {
+                // Generar dibujos con IA si no existen
+                if (!dibujosIA) {
+                    await generarDibujosIA(datos);
+                }
+
+                mostrarLoading('Generando PDF final...', 'Creando el informe profesional');
+
+                const datosConDibujos = { ...datos, dibujos_ia: dibujosIA };
                 const response = await fetch('/generar_v2', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(datos)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosConDibujos)
                 });
 
                 if (response.ok) {
                     const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
+                    const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `Informe_${datos.nombre_rival.replace(/ /g, '_')}_v2.pdf`;
                     document.body.appendChild(a);
                     a.click();
-                    window.URL.revokeObjectURL(url);
+                    URL.revokeObjectURL(url);
                     a.remove();
                 } else {
                     const error = await response.json();
@@ -1582,7 +1858,29 @@ Ejemplo:
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error al generar el PDF: ' + error.message);
+            } finally {
+                ocultarLoading();
             }
+        }
+
+        // Utilidad: convertir base64 a Blob
+        function base64ToBlob(base64, contentType) {
+            const byteCharacters = atob(base64);
+            const byteArrays = [];
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                const slice = byteCharacters.slice(offset, offset + 512);
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                byteArrays.push(new Uint8Array(byteNumbers));
+            }
+            return new Blob(byteArrays, { type: contentType });
+        }
+
+        // Función legacy para compatibilidad
+        async function generarPDF() {
+            await descargarPDFDirecto();
         }
 
         // Logout
