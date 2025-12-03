@@ -11,6 +11,7 @@ import sys
 # Importar los generadores y analizador IA
 sys.path.append(os.path.dirname(__file__))
 from generar_informe import generar_informe_pdf
+from generar_informe_v2 import generar_informe_v2_pdf
 from generar_plan_partido import generar_plan_partido_pdf
 from ia_analyzer import IAAnalyzer
 
@@ -207,9 +208,8 @@ def generar_v2():
         # Crear archivo temporal para el PDF
         pdf_path = tempfile.mktemp(suffix='.pdf')
 
-        # TODO: Crear generar_informe_v2_pdf cuando esté listo
-        # Por ahora usamos el viejo temporalmente
-        generar_informe_pdf(datos, pdf_path)
+        # Generar PDF v2.0 con análisis por fases
+        generar_informe_v2_pdf(datos, pdf_path)
 
         # Leer el PDF
         with open(pdf_path, 'rb') as pdf_file:
