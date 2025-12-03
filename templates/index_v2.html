@@ -1061,12 +1061,11 @@
 
                 if (resultado.success) {
                     datosAnalizadosIA = resultado.data;
-                    alert('✅ Análisis completado! Los campos se rellenarán automáticamente en los siguientes pasos.');
 
-                    // Auto-fill basic info if available
-                    if (datosAnalizadosIA.sistema_tactico) {
-                        document.getElementById('sistema').value = datosAnalizadosIA.sistema_tactico;
-                    }
+                    // Auto-rellenar TODOS los campos del formulario
+                    autoRellenarCampos(resultado.data);
+
+                    alert('✅ Análisis completado! Todos los campos se han rellenado automáticamente. Revisa y ajusta lo que necesites.');
                 } else {
                     alert('❌ Error: ' + resultado.error);
                 }
@@ -1075,6 +1074,134 @@
             } finally {
                 document.getElementById('loading-ia').classList.remove('active');
             }
+        }
+
+        function autoRellenarCampos(data) {
+            // Info básica
+            if (data.sistema_tactico) {
+                document.getElementById('sistema').value = data.sistema_tactico;
+            }
+
+            // ATAQUE
+            if (data.ataque) {
+                // VS Bloque Alto
+                if (data.ataque.vs_bloque_alto) {
+                    const alto = data.ataque.vs_bloque_alto;
+                    if (alto.estructura) document.getElementById('atq_alto_estructura').value = alto.estructura;
+                    if (alto.triangulos) document.getElementById('atq_alto_triangulos').value = alto.triangulos;
+                    if (alto.patrones && Array.isArray(alto.patrones)) {
+                        document.getElementById('atq_alto_patrones').value = alto.patrones.join('\n');
+                    }
+                    if (alto.debilidad) document.getElementById('atq_alto_debilidad').value = alto.debilidad;
+                }
+
+                // VS Bloque Medio
+                if (data.ataque.vs_bloque_medio) {
+                    const medio = data.ataque.vs_bloque_medio;
+                    if (medio.jugadores_clave) document.getElementById('atq_medio_jugadores').value = medio.jugadores_clave;
+                    if (medio.zonas_activas) document.getElementById('atq_medio_zonas').value = medio.zonas_activas;
+                    if (medio.patrones && Array.isArray(medio.patrones)) {
+                        document.getElementById('atq_medio_patrones').value = medio.patrones.join('\n');
+                    }
+                    if (medio.debilidad) document.getElementById('atq_medio_debilidad').value = medio.debilidad;
+                }
+
+                // VS Bloque Bajo
+                if (data.ataque.vs_bloque_bajo) {
+                    const bajo = data.ataque.vs_bloque_bajo;
+                    if (bajo.como_finalizan) document.getElementById('atq_bajo_como').value = bajo.como_finalizan;
+                    if (bajo.jugadores_area) document.getElementById('atq_bajo_jugadores').value = bajo.jugadores_area;
+                    if (bajo.patrones && Array.isArray(bajo.patrones)) {
+                        document.getElementById('atq_bajo_patrones').value = bajo.patrones.join('\n');
+                    }
+                    if (bajo.debilidad) document.getElementById('atq_bajo_debilidad').value = bajo.debilidad;
+                }
+            }
+
+            // DEFENSA
+            if (data.defensa) {
+                // Pressing Alto
+                if (data.defensa.pressing_alto) {
+                    const alto = data.defensa.pressing_alto;
+                    if (alto.estructura) document.getElementById('def_alto_estructura').value = alto.estructura;
+                    if (alto.gatillos) document.getElementById('def_alto_gatillos').value = alto.gatillos;
+                    if (alto.patrones && Array.isArray(alto.patrones)) {
+                        document.getElementById('def_alto_patrones').value = alto.patrones.join('\n');
+                    }
+                    if (alto.fortaleza) document.getElementById('def_alto_fortaleza').value = alto.fortaleza;
+                }
+
+                // Bloque Medio
+                if (data.defensa.bloque_medio) {
+                    const medio = data.defensa.bloque_medio;
+                    if (medio.compactacion) document.getElementById('def_medio_compactacion').value = medio.compactacion;
+                    if (medio.coberturas) document.getElementById('def_medio_coberturas').value = medio.coberturas;
+                    if (medio.patrones && Array.isArray(medio.patrones)) {
+                        document.getElementById('def_medio_patrones').value = medio.patrones.join('\n');
+                    }
+                    if (medio.fortaleza) document.getElementById('def_medio_fortaleza').value = medio.fortaleza;
+                }
+
+                // Bloque Bajo
+                if (data.defensa.bloque_bajo) {
+                    const bajo = data.defensa.bloque_bajo;
+                    if (bajo.organizacion) document.getElementById('def_bajo_organizacion').value = bajo.organizacion;
+                    if (bajo.marcajes) document.getElementById('def_bajo_marcajes').value = bajo.marcajes;
+                    if (bajo.patrones && Array.isArray(bajo.patrones)) {
+                        document.getElementById('def_bajo_patrones').value = bajo.patrones.join('\n');
+                    }
+                    if (bajo.debilidad) document.getElementById('def_bajo_debilidad').value = bajo.debilidad;
+                }
+            }
+
+            // TRANSICIONES
+            if (data.transiciones) {
+                // DEF → ATQ
+                if (data.transiciones.def_atq) {
+                    const defAtq = data.transiciones.def_atq;
+                    if (defAtq.velocidad) document.getElementById('trans_def_atq_velocidad').value = defAtq.velocidad;
+                    if (defAtq.jugadores_clave) document.getElementById('trans_def_atq_jugadores').value = defAtq.jugadores_clave;
+                    if (defAtq.patrones && Array.isArray(defAtq.patrones)) {
+                        document.getElementById('trans_def_atq_patrones').value = defAtq.patrones.join('\n');
+                    }
+                    if (defAtq.como_cortar) document.getElementById('trans_def_atq_cortar').value = defAtq.como_cortar;
+                }
+
+                // ATQ → DEF
+                if (data.transiciones.atq_def) {
+                    const atqDef = data.transiciones.atq_def;
+                    if (atqDef.equilibrios) document.getElementById('trans_atq_def_equilibrios').value = atqDef.equilibrios;
+                    if (atqDef.repliegue) document.getElementById('trans_atq_def_repliegue').value = atqDef.repliegue;
+                    if (atqDef.patrones && Array.isArray(atqDef.patrones)) {
+                        document.getElementById('trans_atq_def_patrones').value = atqDef.patrones.join('\n');
+                    }
+                    if (atqDef.desbalance) document.getElementById('trans_atq_def_desbalance').value = atqDef.desbalance;
+                }
+            }
+
+            // ABP
+            if (data.abp) {
+                if (data.abp.corners_favor) document.getElementById('abp_corners_favor').value = data.abp.corners_favor;
+                if (data.abp.faltas_favor) document.getElementById('abp_faltas_favor').value = data.abp.faltas_favor;
+                if (data.abp.corners_contra) document.getElementById('abp_corners_contra').value = data.abp.corners_contra;
+                if (data.abp.debilidad) document.getElementById('abp_debilidad').value = data.abp.debilidad;
+            }
+
+            // JUGADORES CLAVE
+            if (data.jugadores_clave && Array.isArray(data.jugadores_clave)) {
+                data.jugadores_clave.forEach((jugador, index) => {
+                    if (index < 3) { // Solo primeros 3 jugadores
+                        const num = index + 1;
+                        if (jugador.numero) document.getElementById(`jug${num}_numero`).value = jugador.numero;
+                        if (jugador.nombre) document.getElementById(`jug${num}_nombre`).value = jugador.nombre;
+                        if (jugador.posicion) document.getElementById(`jug${num}_posicion`).value = jugador.posicion;
+                        if (jugador.nivel) document.getElementById(`jug${num}_nivel`).value = jugador.nivel;
+                        if (jugador.caracteristicas) document.getElementById(`jug${num}_caracteristicas`).value = jugador.caracteristicas;
+                    }
+                });
+            }
+
+            console.log('✅ Todos los campos auto-rellenados');
         }
 
         async function generarPDF() {
