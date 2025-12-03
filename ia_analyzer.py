@@ -395,6 +395,376 @@ def test_conexion_ia(provider='groq'):
         }
 
 
+    def generar_dibujo_tactico(self, fase, tipo, texto_tactico):
+        """
+        Genera instrucciones de dibujo para un campo táctico basándose en el texto
+
+        Args:
+            fase: 'ataque', 'defensa', 'transicion', 'abp'
+            tipo: subtipo de la fase (ej: 'vs_bloque_alto', 'pressing_alto', 'def_atq')
+            texto_tactico: dict con los datos tácticos escritos por el usuario
+
+        Returns:
+            dict con instrucciones de dibujo (jugadores, flechas, zonas)
+        """
+        prompt = self._construir_prompt_dibujo(fase, tipo, texto_tactico)
+
+        try:
+            if self.provider == 'groq':
+                resultado = self._analizar_groq_dibujo(prompt)
+            else:
+                resultado = self._analizar_groq_dibujo(prompt)  # Default a Groq
+
+            return {
+                'success': True,
+                'data': resultado
+            }
+        except Exception as e:
+            print(f"[IA] Error generando dibujo: {e}", file=sys.stderr)
+            # Devolver dibujo por defecto
+            return {
+                'success': False,
+                'data': self._dibujo_por_defecto(fase, tipo),
+                'error': str(e)
+            }
+
+    def _construir_prompt_dibujo(self, fase, tipo, texto_tactico):
+        """Construye prompt para generar instrucciones de dibujo táctico"""
+
+        # Contexto según la fase
+        contextos = {
+            'ataque': {
+                'vs_bloque_alto': 'Representa cómo sale el equipo rival desde atrás contra pressing. Muestra portero, defensas, pivote y triángulos de pase.',
+                'vs_bloque_medio': 'Representa cómo progresa el rival en zona media. Muestra centrocampistas creativos y zonas de peligro.',
+                'vs_bloque_bajo': 'Representa cómo finaliza el rival. Muestra jugadores en área, centros laterales, rematadores.'
+            },
+            'defensa': {
+                'pressing_alto': 'Representa la línea de pressing alto del rival. Muestra altura de presión y gatillos.',
+                'bloque_medio': 'Representa el bloque medio defensivo. Muestra compactación entre líneas.',
+                'bloque_bajo': 'Representa el bloque bajo. Muestra organización defensiva en área.'
+            },
+            'transicion': {
+                'def_atq': 'Representa el contraataque rival. Muestra recuperación y carreras hacia portería.',
+                'atq_def': 'Representa la transición defensiva rival. Muestra repliegue y zonas de desbalance.'
+            },
+            'abp': {
+                'corners': 'Representa estrategia de corners. Muestra posiciones de rematadores y ejecutor.',
+                'faltas': 'Representa estrategia de faltas. Muestra ejecutor y movimientos.'
+            }
+        }
+
+        contexto = contextos.get(fase, {}).get(tipo, 'Representa la situación táctica descrita.')
+
+        return f"""Eres un analista táctico visual de fútbol. Genera instrucciones de dibujo para un campo de fútbol.
+
+CONTEXTO: {contexto}
+
+INFORMACIÓN TÁCTICA DEL USUARIO:
+{json.dumps(texto_tactico, indent=2, ensure_ascii=False)}
+
+El campo tiene coordenadas de 0 a 100 en X (izquierda a derecha) y 0 a 100 en Y (abajo a arriba).
+- Portería RIVAL está en X=95-100 (derecha)
+- Portería PROPIA está en X=0-5 (izquierda)
+- Centro del campo: X=50
+
+Genera un JSON con instrucciones de dibujo:
+- jugadores: Lista de jugadores a dibujar (máx 6-8)
+- flechas: Lista de flechas de movimiento/pase (máx 4-5)
+- zonas: Lista de zonas destacadas (máx 2)
+
+DEVUELVE ÚNICAMENTE este JSON:
+{{
+    "jugadores": [
+        {{"x": 85, "y": 50, "numero": "1", "color": "amarillo", "destacado": true}},
+        {{"x": 75, "y": 35, "numero": "4", "color": "rojo", "destacado": false}},
+        {{"x": 75, "y": 65, "numero": "5", "color": "rojo", "destacado": false}}
+    ],
+    "flechas": [
+        {{"x1": 85, "y1": 50, "x2": 75, "y2": 40, "color": "blanco", "tipo": "pase"}},
+        {{"x1": 70, "y1": 50, "x2": 50, "y2": 50, "color": "amarillo", "tipo": "movimiento"}}
+    ],
+    "zonas": [
+        {{"x": 65, "y": 25, "ancho": 20, "alto": 50, "color": "verde", "nombre": "Zona salida"}}
+    ],
+    "linea_tactica": {{
+        "activa": true,
+        "x": 70,
+        "color": "rojo",
+        "etiqueta": "Línea pressing"
+    }}
+}}
+
+COLORES PERMITIDOS: rojo, azul, amarillo, verde, naranja, blanco, morado
+TIPOS DE FLECHA: pase, movimiento, carrera, pressing
+
+Sé creativo y representa visualmente lo que describe el texto táctico. Los jugadores destacados (destacado=true) se dibujan más grandes y en amarillo."""
+
+    def _analizar_groq_dibujo(self, prompt):
+        """Analiza usando Groq para generar dibujos - versión optimizada"""
+        if not self.groq_key:
+            raise ValueError("API Key de Groq no configurada")
+
+        try:
+            client = Groq(api_key=self.groq_key)
+
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Eres un generador de instrucciones de dibujo táctico de fútbol. Respondes SIEMPRE en JSON válido con coordenadas precisas."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=0.5,  # Un poco más creativo para los dibujos
+                max_tokens=1500
+            )
+
+            contenido = completion.choices[0].message.content.strip()
+
+            # Limpiar markdown
+            if contenido.startswith('```json'):
+                contenido = contenido[7:]
+            if contenido.startswith('```'):
+                contenido = contenido[3:]
+            if contenido.endswith('```'):
+                contenido = contenido[:-3]
+            contenido = contenido.strip()
+
+            return json.loads(contenido)
+
+        except Exception as e:
+            print(f"[IA] Error en dibujo Groq: {e}", file=sys.stderr)
+            raise
+
+    def _dibujo_por_defecto(self, fase, tipo):
+        """Devuelve un dibujo por defecto si la IA falla"""
+        defaults = {
+            'ataque': {
+                'vs_bloque_alto': {
+                    'jugadores': [
+                        {'x': 92, 'y': 50, 'numero': '1', 'color': 'amarillo', 'destacado': True},
+                        {'x': 78, 'y': 30, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 78, 'y': 70, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 65, 'y': 50, 'numero': '6', 'color': 'amarillo', 'destacado': True},
+                    ],
+                    'flechas': [
+                        {'x1': 88, 'y1': 50, 'x2': 80, 'y2': 35, 'color': 'blanco', 'tipo': 'pase'},
+                        {'x1': 76, 'y1': 32, 'x2': 68, 'y2': 48, 'color': 'blanco', 'tipo': 'pase'},
+                    ],
+                    'zonas': [
+                        {'x': 70, 'y': 25, 'ancho': 22, 'alto': 50, 'color': 'verde', 'nombre': 'Salida'}
+                    ],
+                    'linea_tactica': {'activa': False}
+                },
+                'vs_bloque_medio': {
+                    'jugadores': [
+                        {'x': 55, 'y': 50, 'numero': '8', 'color': 'amarillo', 'destacado': True},
+                        {'x': 50, 'y': 25, 'numero': '10', 'color': 'amarillo', 'destacado': True},
+                        {'x': 40, 'y': 15, 'numero': '7', 'color': 'rojo', 'destacado': False},
+                        {'x': 40, 'y': 85, 'numero': '11', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [
+                        {'x1': 52, 'y1': 50, 'x2': 35, 'y2': 50, 'color': 'amarillo', 'tipo': 'movimiento'},
+                        {'x1': 48, 'y1': 27, 'x2': 38, 'y2': 20, 'color': 'amarillo', 'tipo': 'pase'},
+                    ],
+                    'zonas': [
+                        {'x': 40, 'y': 15, 'ancho': 25, 'alto': 70, 'color': 'naranja', 'nombre': 'Creación'}
+                    ],
+                    'linea_tactica': {'activa': False}
+                },
+                'vs_bloque_bajo': {
+                    'jugadores': [
+                        {'x': 22, 'y': 50, 'numero': '9', 'color': 'rojo', 'destacado': True},
+                        {'x': 25, 'y': 30, 'numero': '7', 'color': 'rojo', 'destacado': False},
+                        {'x': 25, 'y': 70, 'numero': '11', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [
+                        {'x1': 35, 'y1': 10, 'x2': 22, 'y2': 40, 'color': 'amarillo', 'tipo': 'pase'},
+                        {'x1': 35, 'y1': 90, 'x2': 22, 'y2': 60, 'color': 'amarillo', 'tipo': 'pase'},
+                    ],
+                    'zonas': [
+                        {'x': 8, 'y': 20, 'ancho': 22, 'alto': 60, 'color': 'rojo', 'nombre': 'Área'}
+                    ],
+                    'linea_tactica': {'activa': False}
+                }
+            },
+            'defensa': {
+                'pressing_alto': {
+                    'jugadores': [
+                        {'x': 88, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 20, 'numero': '2', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 80, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [
+                        {'x1': 55, 'y1': 50, 'x2': 68, 'y2': 50, 'color': 'amarillo', 'tipo': 'pressing'},
+                        {'x1': 50, 'y1': 25, 'x2': 65, 'y2': 25, 'color': 'amarillo', 'tipo': 'pressing'},
+                        {'x1': 50, 'y1': 75, 'x2': 65, 'y2': 75, 'color': 'amarillo', 'tipo': 'pressing'},
+                    ],
+                    'zonas': [],
+                    'linea_tactica': {'activa': True, 'x': 70, 'color': 'rojo', 'etiqueta': 'Pressing'}
+                },
+                'bloque_medio': {
+                    'jugadores': [
+                        {'x': 88, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 20, 'numero': '2', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 80, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [],
+                    'zonas': [
+                        {'x': 45, 'y': 15, 'ancho': 15, 'alto': 70, 'color': 'naranja', 'nombre': 'Bloque'}
+                    ],
+                    'linea_tactica': {'activa': True, 'x': 50, 'color': 'naranja', 'etiqueta': 'Línea media'}
+                },
+                'bloque_bajo': {
+                    'jugadores': [
+                        {'x': 92, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
+                        {'x': 82, 'y': 20, 'numero': '2', 'color': 'rojo', 'destacado': False},
+                        {'x': 82, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 82, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 82, 'y': 80, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [],
+                    'zonas': [],
+                    'linea_tactica': {'activa': True, 'x': 30, 'color': 'azul', 'etiqueta': 'Bloque bajo'}
+                }
+            },
+            'transicion': {
+                'def_atq': {
+                    'jugadores': [
+                        {'x': 45, 'y': 50, 'numero': '10', 'color': 'amarillo', 'destacado': True},
+                        {'x': 30, 'y': 20, 'numero': '7', 'color': 'rojo', 'destacado': False},
+                        {'x': 30, 'y': 80, 'numero': '11', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [
+                        {'x1': 45, 'y1': 50, 'x2': 25, 'y2': 50, 'color': 'verde', 'tipo': 'movimiento'},
+                        {'x1': 40, 'y1': 30, 'x2': 20, 'y2': 15, 'color': 'verde', 'tipo': 'carrera'},
+                        {'x1': 40, 'y1': 70, 'x2': 20, 'y2': 85, 'color': 'verde', 'tipo': 'carrera'},
+                    ],
+                    'zonas': [
+                        {'x': 35, 'y': 30, 'ancho': 15, 'alto': 40, 'color': 'verde', 'nombre': 'Recuperación'}
+                    ],
+                    'linea_tactica': {'activa': False}
+                },
+                'atq_def': {
+                    'jugadores': [
+                        {'x': 75, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 60, 'y': 50, 'numero': '6', 'color': 'amarillo', 'destacado': True},
+                    ],
+                    'flechas': [
+                        {'x1': 30, 'y1': 50, 'x2': 55, 'y2': 50, 'color': 'rojo', 'tipo': 'movimiento'},
+                        {'x1': 25, 'y1': 20, 'x2': 50, 'y2': 30, 'color': 'rojo', 'tipo': 'movimiento'},
+                        {'x1': 25, 'y1': 80, 'x2': 50, 'y2': 70, 'color': 'rojo', 'tipo': 'movimiento'},
+                    ],
+                    'zonas': [
+                        {'x': 55, 'y': 20, 'ancho': 25, 'alto': 60, 'color': 'rojo', 'nombre': 'Desbalance'}
+                    ],
+                    'linea_tactica': {'activa': False}
+                }
+            },
+            'abp': {
+                'corners': {
+                    'jugadores': [
+                        {'x': 12, 'y': 50, 'numero': '9', 'color': 'rojo', 'destacado': True},
+                        {'x': 10, 'y': 35, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 14, 'y': 65, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [
+                        {'x1': 2, 'y1': 95, 'x2': 10, 'y2': 55, 'color': 'amarillo', 'tipo': 'pase'},
+                    ],
+                    'zonas': [
+                        {'x': 5, 'y': 25, 'ancho': 15, 'alto': 50, 'color': 'morado', 'nombre': 'Zona remate'}
+                    ],
+                    'linea_tactica': {'activa': False}
+                },
+                'faltas': {
+                    'jugadores': [
+                        {'x': 25, 'y': 50, 'numero': '10', 'color': 'amarillo', 'destacado': True},
+                        {'x': 15, 'y': 45, 'numero': '9', 'color': 'rojo', 'destacado': False},
+                        {'x': 15, 'y': 55, 'numero': '7', 'color': 'rojo', 'destacado': False},
+                    ],
+                    'flechas': [
+                        {'x1': 25, 'y1': 50, 'x2': 8, 'y2': 50, 'color': 'amarillo', 'tipo': 'pase'},
+                    ],
+                    'zonas': [],
+                    'linea_tactica': {'activa': False}
+                }
+            }
+        }
+
+        return defaults.get(fase, {}).get(tipo, {
+            'jugadores': [],
+            'flechas': [],
+            'zonas': [],
+            'linea_tactica': {'activa': False}
+        })
+
+    def generar_todos_los_dibujos(self, datos_completos):
+        """
+        Genera todas las instrucciones de dibujo para un informe completo
+
+        Args:
+            datos_completos: dict con todos los datos del formulario
+
+        Returns:
+            dict con instrucciones de dibujo para cada sección
+        """
+        dibujos = {
+            'ataque': {},
+            'defensa': {},
+            'transiciones': {},
+            'abp': {}
+        }
+
+        # Ataque
+        ataque = datos_completos.get('ataque', {})
+        for tipo in ['vs_bloque_alto', 'vs_bloque_medio', 'vs_bloque_bajo']:
+            fase_data = ataque.get(tipo, {})
+            if fase_data:
+                resultado = self.generar_dibujo_tactico('ataque', tipo, fase_data)
+                dibujos['ataque'][tipo] = resultado['data']
+            else:
+                dibujos['ataque'][tipo] = self._dibujo_por_defecto('ataque', tipo)
+
+        # Defensa
+        defensa = datos_completos.get('defensa', {})
+        for tipo in ['pressing_alto', 'bloque_medio', 'bloque_bajo']:
+            fase_data = defensa.get(tipo, {})
+            if fase_data:
+                resultado = self.generar_dibujo_tactico('defensa', tipo, fase_data)
+                dibujos['defensa'][tipo] = resultado['data']
+            else:
+                dibujos['defensa'][tipo] = self._dibujo_por_defecto('defensa', tipo)
+
+        # Transiciones
+        transiciones = datos_completos.get('transiciones', {})
+        for tipo in ['def_atq', 'atq_def']:
+            fase_data = transiciones.get(tipo, {})
+            if fase_data:
+                resultado = self.generar_dibujo_tactico('transicion', tipo, fase_data)
+                dibujos['transiciones'][tipo] = resultado['data']
+            else:
+                dibujos['transiciones'][tipo] = self._dibujo_por_defecto('transicion', tipo)
+
+        # ABP
+        abp = datos_completos.get('abp', {})
+        if abp:
+            resultado = self.generar_dibujo_tactico('abp', 'corners', abp)
+            dibujos['abp']['corners'] = resultado['data']
+        else:
+            dibujos['abp']['corners'] = self._dibujo_por_defecto('abp', 'corners')
+
+        return dibujos
+
+
 if __name__ == "__main__":
     # Test de conexión
     print("🧪 Testeando conexión con Groq...")
