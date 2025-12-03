@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Táctico v2.0 - Club Atlético Central</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F3F4F6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .version-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #E5E7EB;
+            z-index: 0;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background: #10B981;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #E5E7EB;
+            color: #6B7280;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .step-circle {
+            background: #10B981;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .progress-step.completed .step-circle {
+            background: #059669;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        .progress-step.active .step-label {
+            color: #10B981;
+            font-weight: 600;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            color: #1F2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #10B981;
+        }
+
+        .subsection-title {
+            color: #374151;
+            font-size: 18px;
+            margin: 25px 0 15px 0;
+            padding: 10px;
+            background: #F9FAFB;
+            border-left: 4px solid #10B981;
+            border-radius: 4px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-triple {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 5px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            border-left: 4px solid #3B82F6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1E40AF;
+        }
+
+        .info-box strong {
+            color: #1E3A8A;
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-primary {
+            background: #10B981;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6B7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4B5563;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            width: 100%;
+            max-width: none;
+            padding: 15px;
+            font-size: 16px;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Phase Cards (3 columns for attack/defense phases) */
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .phase-card {
+            background: #F9FAFB;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .phase-card:hover {
+            border-color: #10B981;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .phase-card h3 {
+            color: #10B981;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        /* Mini Field Placeholder */
+        .mini-field {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(180deg, #2D7A3E 0%, #1F5A2C 100%);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            border: 3px solid white;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .mini-field::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .mini-field::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #E5E7EB;
+            border-top-color: #10B981;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row,
+            .form-triple,
+            .phase-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>⚽ Club Atlético Central</h1>
+                <span class="version-badge">v2.0 - Análisis por Fases</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line">
+                    <div class="progress-line-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-step active" data-step="0">
+                    <div class="step-circle">🤖</div>
+                    <div class="step-label">IA</div>
+                </div>
+                <div class="progress-step" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Básica</div>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-circle">⚔️</div>
+                    <div class="step-label">Ataque</div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-circle">🛡️</div>
+                    <div class="step-label">Defensa</div>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-circle">⚡</div>
+                    <div class="step-label">Transiciones</div>
+                </div>
+                <div class="progress-step" data-step="5">
+                    <div class="step-circle">🎯</div>
+                    <div class="step-label">ABP</div>
+                </div>
+                <div class="progress-step" data-step="6">
+                    <div class="step-circle">⭐</div>
+                    <div class="step-label">Jugadores</div>
+                </div>
+                <div class="progress-step" data-step="7">
+                    <div class="step-circle">📄</div>
+                    <div class="step-label">PDF</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+
+            <!-- PASO 0: IA -->
+            <div class="form-section active" id="section0">
+                <h2 class="section-title">🤖 Análisis con Inteligencia Artificial</h2>
+
+                <div class="info-box">
+                    <strong>💡 Ejemplo de notas:</strong><br>
+                    <em>"Juegan 4-3-3. El 10 organiza todo, muy técnico. El 9 rápido pero flojo de cabeza. Salen bien con portero. Presionan alto al DC. Laterales suben mucho dejando espacios..."</em>
+                </div>
+
+                <div class="form-group">
+                    <label for="notas_partido">📝 Tus Notas del Partido</label>
+                    <textarea id="notas_partido" placeholder="Escribe tus observaciones informales del rival..." style="min-height: 250px;"></textarea>
+                    <div class="hint">Mínimo 50 caracteres para análisis</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Proveedor de IA</label>
+                        <select id="ia_provider">
+                            <option value="groq" selected>Groq</option>
+                            <option value="claude">Claude</option>
+                        </select>
+                    </div>
+                    <div></div>
+                </div>
+
+                <button class="btn-success" onclick="analizarConIA()">🤖 Analizar con IA</button>
+
+                <!-- Loading -->
+                <div class="loading" id="loading-ia">
+                    <div class="spinner"></div>
+                    <p style="font-size: 18px; font-weight: 600; color: #374151;">Analizando tus notas...</p>
+                    <p style="font-size: 14px; color: #6B7280;">La IA está procesando y estructurando el análisis</p>
+                </div>
+
+                <div class="buttons" style="margin-top: 30px;">
+                    <div></div>
+                    <button class="btn-primary" onclick="nextSection(1)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 1: INFORMACIÓN BÁSICA -->
+            <div class="form-section" id="section1">
+                <h2 class="section-title">📋 Información Básica del Rival</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre_rival">Nombre del Equipo Rival *</label>
+                        <input type="text" id="nombre_rival" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jornada">Jornada *</label>
+                        <input type="text" id="jornada" placeholder="Ej: Jornada 15" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sistema">Sistema Táctico *</label>
+                        <select id="sistema" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="4-3-3">4-3-3</option>
+                            <option value="4-4-2">4-4-2</option>
+                            <option value="4-2-3-1">4-2-3-1</option>
+                            <option value="3-5-2">3-5-2</option>
+                            <option value="3-4-3">3-4-3</option>
+                            <option value="4-1-4-1">4-1-4-1</option>
+                            <option value="5-3-2">5-3-2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="posicion">Posición en Tabla *</label>
+                        <input type="text" id="posicion" placeholder="Ej: 3º" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="racha">Racha (Últimos 5 Partidos) *</label>
+                        <input type="text" id="racha" placeholder="Ej: V-V-E-D-V" required>
+                        <div class="hint">V (Victoria), E (Empate), D (Derrota)</div>
+                    </div>
+                    <div></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="goles_favor">Goles a Favor</label>
+                        <input type="number" id="goles_favor" placeholder="25" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="goles_contra">Goles en Contra</label>
+                        <input type="number" id="goles_contra" placeholder="12" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bajas">Bajas (Lesionados y Sancionados)</label>
+                    <textarea id="bajas" placeholder="Ej: Lesionados: #23 Pérez (lateral). Sancionados: #10 García"></textarea>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(0)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(2)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- TO BE CONTINUED... -->
+            <!-- Las siguientes secciones (Ataque, Defensa, etc.) las añado en el siguiente mensaje -->
+
+        </div>
+    </div>
+
+    <script>
+        let currentSection = 0;
+        let datosAnalizadosIA = null;
+
+        function nextSection(section) {
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`section${section}`).classList.add('active');
+
+            // Update progress
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                step.classList.remove('active');
+                if (index < section) {
+                    step.classList.add('completed');
+                } else if (index === section) {
+                    step.classList.add('active');
+                }
+            });
+
+            const progress = (section / 7) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            currentSection = section;
+            window.scrollTo(0, 0);
+        }
+
+        function prevSection(section) {
+            nextSection(section);
+        }
+
+        async function analizarConIA() {
+            const notas = document.getElementById('notas_partido').value;
+            const provider = document.getElementById('ia_provider').value;
+
+            if (!notas || notas.length < 50) {
+                alert('⚠️ Escribe al menos 50 caracteres para un análisis adecuado');
+                return;
+            }
+
+            document.getElementById('loading-ia').classList.add('active');
+
+            try {
+                const response = await fetch('/analizar_notas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notas, provider })
+                });
+
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    datosAnalizadosIA = resultado.data;
+                    alert('✅ Análisis completado! Los campos se rellenarán automáticamente en los siguientes pasos.');
+
+                    // Auto-fill basic info if available
+                    if (datosAnalizadosIA.sistema_tactico) {
+                        document.getElementById('sistema').value = datosAnalizadosIA.sistema_tactico;
+                    }
+                } else {
+                    alert('❌ Error: ' + resultado.error);
+                }
+            } catch (error) {
+                alert('❌ Error de conexión: ' + error.message);
+            } finally {
+                document.getElementById('loading-ia').classList.remove('active');
+            }
+        }
+
+        function logout() {
+            if (confirm('¿Seguro que quieres cerrar sesión?')) {
+                window.location.href = '/logout';
+            }
+        }
+    </script>
+</body>
+</html>
