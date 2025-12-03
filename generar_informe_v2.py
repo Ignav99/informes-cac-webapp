@@ -458,26 +458,27 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
 
         if fase_data:
             if fase_data.get('estructura'):
-                contenido.append(Paragraph(f'<b>→</b> {fase_data["estructura"][:60]}', style_texto))
+                contenido.append(Paragraph(f'<b>Estructura:</b> {fase_data["estructura"][:55]}', style_texto))
             if fase_data.get('triangulos'):
-                contenido.append(Paragraph(f'<b>△</b> {fase_data["triangulos"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Triángulos:</b> {fase_data["triangulos"][:45]}', style_texto))
             if fase_data.get('jugadores_clave'):
-                contenido.append(Paragraph(f'<b>★</b> {fase_data["jugadores_clave"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Jugadores clave:</b> {fase_data["jugadores_clave"][:40]}', style_texto))
             if fase_data.get('zonas_activas'):
-                contenido.append(Paragraph(f'<b>◉</b> {fase_data["zonas_activas"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Zonas activas:</b> {fase_data["zonas_activas"][:40]}', style_texto))
             if fase_data.get('como_finalizan'):
-                contenido.append(Paragraph(f'<b>⚽</b> {fase_data["como_finalizan"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Finalización:</b> {fase_data["como_finalizan"][:45]}', style_texto))
 
             patrones = fase_data.get('patrones', [])
             if patrones:
+                contenido.append(Paragraph('<b>Patrones:</b>', style_texto))
                 for p in patrones[:2]:
                     if p:
-                        contenido.append(Paragraph(f'• {p[:45]}', style_texto))
+                        contenido.append(Paragraph(f'  • {p[:42]}', style_texto))
 
             if fase_data.get('fortaleza'):
-                contenido.append(Paragraph(f'<b>💪</b> {fase_data["fortaleza"][:40]}', style_fortaleza))
+                contenido.append(Paragraph(f'<b>Fortaleza:</b> {fase_data["fortaleza"][:38]}', style_fortaleza))
             if fase_data.get('debilidad'):
-                contenido.append(Paragraph(f'<b>⚠️</b> {fase_data["debilidad"][:40]}', style_debilidad))
+                contenido.append(Paragraph(f'<b>Debilidad:</b> {fase_data["debilidad"][:38]}', style_debilidad))
 
         return contenido
 
@@ -536,27 +537,29 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
 
         if fase_data:
             if fase_data.get('estructura'):
-                contenido.append(Paragraph(f'<b>→</b> {fase_data["estructura"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Estructura:</b> {fase_data["estructura"][:45]}', style_texto))
             if fase_data.get('gatillos'):
-                contenido.append(Paragraph(f'<b>⚡</b> {fase_data["gatillos"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Gatillos:</b> {fase_data["gatillos"][:45]}', style_texto))
             if fase_data.get('compactacion'):
-                contenido.append(Paragraph(f'<b>◁▷</b> {fase_data["compactacion"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Compactación:</b> {fase_data["compactacion"][:40]}', style_texto))
             if fase_data.get('coberturas'):
-                contenido.append(Paragraph(f'<b>↔</b> {fase_data["coberturas"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Coberturas:</b> {fase_data["coberturas"][:42]}', style_texto))
             if fase_data.get('organizacion'):
-                contenido.append(Paragraph(f'<b>▣</b> {fase_data["organizacion"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Organización:</b> {fase_data["organizacion"][:42]}', style_texto))
             if fase_data.get('marcajes'):
-                contenido.append(Paragraph(f'<b>⊗</b> {fase_data["marcajes"][:50]}', style_texto))
+                contenido.append(Paragraph(f'<b>Marcajes:</b> {fase_data["marcajes"][:45]}', style_texto))
 
             patrones = fase_data.get('patrones', [])
-            for p in patrones[:2]:
-                if p:
-                    contenido.append(Paragraph(f'• {p[:45]}', style_texto))
+            if patrones:
+                contenido.append(Paragraph('<b>Patrones:</b>', style_texto))
+                for p in patrones[:2]:
+                    if p:
+                        contenido.append(Paragraph(f'  • {p[:42]}', style_texto))
 
             if fase_data.get('fortaleza'):
-                contenido.append(Paragraph(f'<b>💪</b> {fase_data["fortaleza"][:40]}', style_fortaleza))
+                contenido.append(Paragraph(f'<b>Fortaleza:</b> {fase_data["fortaleza"][:38]}', style_fortaleza))
             if fase_data.get('debilidad'):
-                contenido.append(Paragraph(f'<b>⚠️</b> {fase_data["debilidad"][:40]}', style_debilidad))
+                contenido.append(Paragraph(f'<b>Debilidad:</b> {fase_data["debilidad"][:38]}', style_debilidad))
 
         return contenido
 
@@ -621,26 +624,28 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
         if fase_data:
             if tipo == 'def_atq':
                 if fase_data.get('velocidad'):
-                    contenido.append(Paragraph(f'<b>⏱</b> Velocidad: {fase_data["velocidad"]}', style_texto))
+                    contenido.append(Paragraph(f'<b>Velocidad:</b> {fase_data["velocidad"]}', style_texto))
                 if fase_data.get('jugadores_clave'):
-                    contenido.append(Paragraph(f'<b>★</b> Claves: {fase_data["jugadores_clave"]}', style_texto))
+                    contenido.append(Paragraph(f'<b>Jugadores clave:</b> {fase_data["jugadores_clave"]}', style_texto))
                 if fase_data.get('como_cortar'):
-                    contenido.append(Paragraph(f'<b>✂️</b> Cortar: {fase_data["como_cortar"]}', style_debilidad))
+                    contenido.append(Paragraph(f'<b>Cómo cortarla:</b> {fase_data["como_cortar"]}', style_debilidad))
             else:
                 if fase_data.get('equilibrios'):
-                    contenido.append(Paragraph(f'<b>⚖</b> Equilibrios: {fase_data["equilibrios"]}', style_texto))
+                    contenido.append(Paragraph(f'<b>Equilibrios:</b> {fase_data["equilibrios"]}', style_texto))
                 if fase_data.get('repliegue'):
-                    contenido.append(Paragraph(f'<b>↩</b> Repliegue: {fase_data["repliegue"]}', style_texto))
+                    contenido.append(Paragraph(f'<b>Repliegue:</b> {fase_data["repliegue"]}', style_texto))
                 if fase_data.get('desbalance'):
-                    contenido.append(Paragraph(f'<b>⚠️</b> Desbalance: {fase_data["desbalance"]}', style_debilidad))
+                    contenido.append(Paragraph(f'<b>Desbalance:</b> {fase_data["desbalance"]}', style_debilidad))
 
             patrones = fase_data.get('patrones', [])
-            for p in patrones[:2]:
-                if p:
-                    contenido.append(Paragraph(f'• {p[:50]}', style_texto))
+            if patrones:
+                contenido.append(Paragraph('<b>Patrones:</b>', style_texto))
+                for p in patrones[:2]:
+                    if p:
+                        contenido.append(Paragraph(f'  • {p[:48]}', style_texto))
 
             if fase_data.get('fortaleza'):
-                contenido.append(Paragraph(f'<b>💪</b> {fase_data["fortaleza"]}', style_fortaleza))
+                contenido.append(Paragraph(f'<b>Fortaleza:</b> {fase_data["fortaleza"]}', style_fortaleza))
 
         return contenido
 

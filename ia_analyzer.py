@@ -353,48 +353,6 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
 
         return json.loads(contenido)
 
-
-# ============================================
-# FUNCIONES AUXILIARES
-# ============================================
-
-def test_conexion_ia(provider='groq'):
-    """
-    Prueba la conexión con el proveedor de IA
-
-    Returns:
-        dict con resultado del test
-    """
-    analyzer = IAAnalyzer(provider=provider)
-
-    notas_test = """
-    El rival juega en 4-3-3. El 10 es muy bueno, organiza todo el juego.
-    El 9 es rápido pero flojo de cabeza.
-    Salen bien desde atrás, el portero tiene buen pie.
-    En defensa presionan alto pero dejan espacios a la espalda.
-    Los laterales suben mucho y dejan huecos.
-    """
-
-    try:
-        resultado = analyzer.analizar_notas_rival(notas_test)
-        if resultado['success']:
-            return {
-                'success': True,
-                'message': f'✅ Conexión exitosa con {provider.upper()}',
-                'data': resultado['data']
-            }
-        else:
-            return {
-                'success': False,
-                'message': f'❌ Error: {resultado["error"]}'
-            }
-    except Exception as e:
-        return {
-            'success': False,
-            'message': f'❌ Error de conexión: {str(e)}'
-        }
-
-
     def generar_dibujo_tactico(self, fase, tipo, texto_tactico):
         """
         Genera instrucciones de dibujo para un campo táctico basándose en el texto
@@ -413,7 +371,7 @@ def test_conexion_ia(provider='groq'):
             if self.provider == 'groq':
                 resultado = self._analizar_groq_dibujo(prompt)
             else:
-                resultado = self._analizar_groq_dibujo(prompt)  # Default a Groq
+                resultado = self._analizar_groq_dibujo(prompt)
 
             return {
                 'success': True,
@@ -421,7 +379,6 @@ def test_conexion_ia(provider='groq'):
             }
         except Exception as e:
             print(f"[IA] Error generando dibujo: {e}", file=sys.stderr)
-            # Devolver dibujo por defecto
             return {
                 'success': False,
                 'data': self._dibujo_por_defecto(fase, tipo),
@@ -430,8 +387,6 @@ def test_conexion_ia(provider='groq'):
 
     def _construir_prompt_dibujo(self, fase, tipo, texto_tactico):
         """Construye prompt para generar instrucciones de dibujo táctico"""
-
-        # Contexto según la fase
         contextos = {
             'ataque': {
                 'vs_bloque_alto': 'Representa cómo sale el equipo rival desde atrás contra pressing. Muestra portero, defensas, pivote y triángulos de pase.',
@@ -500,7 +455,7 @@ TIPOS DE FLECHA: pase, movimiento, carrera, pressing
 Sé creativo y representa visualmente lo que describe el texto táctico. Los jugadores destacados (destacado=true) se dibujan más grandes y en amarillo."""
 
     def _analizar_groq_dibujo(self, prompt):
-        """Analiza usando Groq para generar dibujos - versión optimizada"""
+        """Analiza usando Groq para generar dibujos"""
         if not self.groq_key:
             raise ValueError("API Key de Groq no configurada")
 
@@ -519,13 +474,12 @@ Sé creativo y representa visualmente lo que describe el texto táctico. Los jug
                         "content": prompt
                     }
                 ],
-                temperature=0.5,  # Un poco más creativo para los dibujos
+                temperature=0.5,
                 max_tokens=1500
             )
 
             contenido = completion.choices[0].message.content.strip()
 
-            # Limpiar markdown
             if contenido.startswith('```json'):
                 contenido = contenido[7:]
             if contenido.startswith('```'):
@@ -708,15 +662,7 @@ Sé creativo y representa visualmente lo que describe el texto táctico. Los jug
         })
 
     def generar_todos_los_dibujos(self, datos_completos):
-        """
-        Genera todas las instrucciones de dibujo para un informe completo
-
-        Args:
-            datos_completos: dict con todos los datos del formulario
-
-        Returns:
-            dict con instrucciones de dibujo para cada sección
-        """
+        """Genera todas las instrucciones de dibujo para un informe completo"""
         dibujos = {
             'ataque': {},
             'defensa': {},
@@ -763,6 +709,47 @@ Sé creativo y representa visualmente lo que describe el texto táctico. Los jug
             dibujos['abp']['corners'] = self._dibujo_por_defecto('abp', 'corners')
 
         return dibujos
+
+
+# ============================================
+# FUNCIONES AUXILIARES
+# ============================================
+
+def test_conexion_ia(provider='groq'):
+    """
+    Prueba la conexión con el proveedor de IA
+
+    Returns:
+        dict con resultado del test
+    """
+    analyzer = IAAnalyzer(provider=provider)
+
+    notas_test = """
+    El rival juega en 4-3-3. El 10 es muy bueno, organiza todo el juego.
+    El 9 es rápido pero flojo de cabeza.
+    Salen bien desde atrás, el portero tiene buen pie.
+    En defensa presionan alto pero dejan espacios a la espalda.
+    Los laterales suben mucho y dejan huecos.
+    """
+
+    try:
+        resultado = analyzer.analizar_notas_rival(notas_test)
+        if resultado['success']:
+            return {
+                'success': True,
+                'message': f'✅ Conexión exitosa con {provider.upper()}',
+                'data': resultado['data']
+            }
+        else:
+            return {
+                'success': False,
+                'message': f'❌ Error: {resultado["error"]}'
+            }
+    except Exception as e:
+        return {
+            'success': False,
+            'message': f'❌ Error de conexión: {str(e)}'
+        }
 
 
 if __name__ == "__main__":
