@@ -129,19 +129,22 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura:
             "estructura": "Estructura de salida (ej: 4+1, portero+4 defensas+1 pivote)",
             "triangulos": "Triángulos clave de pase (ej: 1-4-6, Portero-DC-Pivote)",
             "patrones": ["Patrón 1", "Patrón 2", "Patrón 3"],
-            "debilidad": "Debilidad específica a explotar"
+            "debilidad": "Debilidad específica a explotar",
+            "fortaleza": "Principal fortaleza en salida de balón"
         }},
         "vs_bloque_medio": {{
             "jugadores_clave": "Quiénes destacan en progresión",
             "zonas_activas": "Bandas/centro, carrileros, etc",
             "patrones": ["Patrón 1", "Patrón 2", "Patrón 3"],
-            "debilidad": "Debilidad específica"
+            "debilidad": "Debilidad específica",
+            "fortaleza": "Principal fortaleza en progresión"
         }},
         "vs_bloque_bajo": {{
             "como_finalizan": "Centros, juego interior, etc",
             "jugadores_area": "Quiénes rematan",
             "patrones": ["Patrón 1", "Patrón 2"],
-            "debilidad": "Debilidad específica"
+            "debilidad": "Debilidad específica",
+            "fortaleza": "Principal fortaleza en finalización"
         }}
     }},
 
@@ -150,19 +153,22 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura:
             "estructura": "Sistema defensivo (ej: 4-4-2, 4-1-3-2)",
             "gatillos": "Cuándo presionan (ej: pase al DC)",
             "patrones": ["Patrón 1", "Patrón 2"],
+            "debilidad": "Debilidad específica a explotar",
             "fortaleza": "Punto fuerte defensivo"
         }},
         "bloque_medio": {{
             "compactacion": "Distancia entre líneas, metros de bloque",
             "coberturas": "Cómo cubren espacios",
             "patrones": ["Patrón 1", "Patrón 2"],
+            "debilidad": "Debilidad específica",
             "fortaleza": "Punto fuerte"
         }},
         "bloque_bajo": {{
             "organizacion": "Cómo se organizan en área",
             "marcajes": "Zona/individual/mixto",
             "patrones": ["Patrón 1", "Patrón 2"],
-            "debilidad": "Debilidad específica"
+            "debilidad": "Debilidad específica",
+            "fortaleza": "Principal fortaleza defensiva en bloque bajo"
         }}
     }},
 
@@ -171,13 +177,15 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura:
             "velocidad": "Rápida/lenta/media",
             "jugadores_clave": "Quiénes protagonizan",
             "patrones": ["Patrón 1", "Patrón 2"],
-            "como_cortar": "Cómo podemos cortarla"
+            "como_cortar": "Cómo podemos cortarla",
+            "fortaleza": "Principal fortaleza en transición ofensiva"
         }},
         "atq_def": {{
             "equilibrios": "Quiénes quedan en equilibrio al atacar",
             "repliegue": "Rápido/lento, pressing o repliegue",
             "patrones": ["Patrón 1", "Patrón 2"],
-            "desbalance": "Dónde están expuestos"
+            "desbalance": "Dónde están expuestos",
+            "fortaleza": "Principal fortaleza en transición defensiva"
         }}
     }},
 
@@ -185,7 +193,8 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura:
         "corners_favor": "Estructura, ejecutor, zonas",
         "faltas_favor": "Ejecutores, estrategias",
         "corners_contra": "Organización defensiva",
-        "debilidad": "Debilidad en ABP"
+        "debilidad": "Debilidad en ABP",
+        "fortaleza": "Principal fortaleza en ABP"
     }},
 
     "jugadores_clave": [
