@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Táctico v2.0 - Club Atlético Central</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F3F4F6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .version-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #E5E7EB;
+            z-index: 0;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background: #10B981;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #E5E7EB;
+            color: #6B7280;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .step-circle {
+            background: #10B981;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .progress-step.completed .step-circle {
+            background: #059669;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        .progress-step.active .step-label {
+            color: #10B981;
+            font-weight: 600;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            color: #1F2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #10B981;
+        }
+
+        .subsection-title {
+            color: #374151;
+            font-size: 18px;
+            margin: 25px 0 15px 0;
+            padding: 10px;
+            background: #F9FAFB;
+            border-left: 4px solid #10B981;
+            border-radius: 4px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-triple {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 5px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            border-left: 4px solid #3B82F6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1E40AF;
+        }
+
+        .info-box strong {
+            color: #1E3A8A;
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-primary {
+            background: #10B981;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6B7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4B5563;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            width: 100%;
+            max-width: none;
+            padding: 15px;
+            font-size: 16px;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Phase Cards (3 columns for attack/defense phases) */
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .phase-card {
+            background: #F9FAFB;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .phase-card:hover {
+            border-color: #10B981;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .phase-card h3 {
+            color: #10B981;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        /* Mini Field Placeholder */
+        .mini-field {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(180deg, #2D7A3E 0%, #1F5A2C 100%);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            border: 3px solid white;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .mini-field::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .mini-field::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #E5E7EB;
+            border-top-color: #10B981;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row,
+            .form-triple,
+            .phase-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>⚽ Club Atlético Central</h1>
+                <span class="version-badge">v2.0 - Análisis por Fases</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line">
+                    <div class="progress-line-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-step active" data-step="0">
+                    <div class="step-circle">🤖</div>
+                    <div class="step-label">IA</div>
+                </div>
+                <div class="progress-step" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Básica</div>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-circle">⚔️</div>
+                    <div class="step-label">Ataque</div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-circle">🛡️</div>
+                    <div class="step-label">Defensa</div>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-circle">⚡</div>
+                    <div class="step-label">Transiciones</div>
+                </div>
+                <div class="progress-step" data-step="5">
+                    <div class="step-circle">🎯</div>
+                    <div class="step-label">ABP</div>
+                </div>
+                <div class="progress-step" data-step="6">
+                    <div class="step-circle">⭐</div>
+                    <div class="step-label">Jugadores</div>
+                </div>
+                <div class="progress-step" data-step="7">
+                    <div class="step-circle">📄</div>
+                    <div class="step-label">PDF</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+
+            <!-- PASO 0: IA -->
+            <div class="form-section active" id="section0">
+                <h2 class="section-title">🤖 Análisis con Inteligencia Artificial</h2>
+
+                <div class="info-box">
+                    <strong>💡 Ejemplo de notas:</strong><br>
+                    <em>"Juegan 4-3-3. El 10 organiza todo, muy técnico. El 9 rápido pero flojo de cabeza. Salen bien con portero. Presionan alto al DC. Laterales suben mucho dejando espacios..."</em>
+                </div>
+
+                <div class="form-group">
+                    <label for="notas_partido">📝 Tus Notas del Partido</label>
+                    <textarea id="notas_partido" placeholder="Escribe tus observaciones informales del rival..." style="min-height: 250px;"></textarea>
+                    <div class="hint">Mínimo 50 caracteres para análisis</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Proveedor de IA</label>
+                        <select id="ia_provider">
+                            <option value="groq" selected>Groq</option>
+                            <option value="claude">Claude</option>
+                        </select>
+                    </div>
+                    <div></div>
+                </div>
+
+                <button class="btn-success" onclick="analizarConIA()">🤖 Analizar con IA</button>
+
+                <!-- Loading -->
+                <div class="loading" id="loading-ia">
+                    <div class="spinner"></div>
+                    <p style="font-size: 18px; font-weight: 600; color: #374151;">Analizando tus notas...</p>
+                    <p style="font-size: 14px; color: #6B7280;">La IA está procesando y estructurando el análisis</p>
+                </div>
+
+                <div class="buttons" style="margin-top: 30px;">
+                    <div></div>
+                    <button class="btn-primary" onclick="nextSection(1)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 1: INFORMACIÓN BÁSICA -->
+            <div class="form-section" id="section1">
+                <h2 class="section-title">📋 Información Básica del Rival</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre_rival">Nombre del Equipo Rival *</label>
+                        <input type="text" id="nombre_rival" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jornada">Jornada *</label>
+                        <input type="text" id="jornada" placeholder="Ej: Jornada 15" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sistema">Sistema Táctico *</label>
+                        <select id="sistema" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="4-3-3">4-3-3</option>
+                            <option value="4-4-2">4-4-2</option>
+                            <option value="4-2-3-1">4-2-3-1</option>
+                            <option value="3-5-2">3-5-2</option>
+                            <option value="3-4-3">3-4-3</option>
+                            <option value="4-1-4-1">4-1-4-1</option>
+                            <option value="5-3-2">5-3-2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="posicion">Posición en Tabla *</label>
+                        <input type="text" id="posicion" placeholder="Ej: 3º" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="racha">Racha (Últimos 5 Partidos) *</label>
+                        <input type="text" id="racha" placeholder="Ej: V-V-E-D-V" required>
+                        <div class="hint">V (Victoria), E (Empate), D (Derrota)</div>
+                    </div>
+                    <div></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="goles_favor">Goles a Favor</label>
+                        <input type="number" id="goles_favor" placeholder="25" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="goles_contra">Goles en Contra</label>
+                        <input type="number" id="goles_contra" placeholder="12" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bajas">Bajas (Lesionados y Sancionados)</label>
+                    <textarea id="bajas" placeholder="Ej: Lesionados: #23 Pérez (lateral). Sancionados: #10 García"></textarea>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(0)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(2)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 2: ATAQUE ORGANIZADO -->
+            <div class="form-section" id="section2">
+                <h2 class="section-title">⚔️ Ataque Organizado del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Cómo ataca el rival en cada fase según la altura de tu bloque defensivo.
+                </div>
+
+                <div class="phase-grid">
+                    <!-- VS BLOQUE ALTO (Creación) -->
+                    <div class="phase-card">
+                        <h3>🔴 VS BLOQUE ALTO<br><small>(Creación / Salida)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Estructura</label>
+                            <input type="text" id="atq_alto_estructura" placeholder="Ej: 4+1">
+                            <div class="hint">Ej: 4+1, 3+2</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Triángulos</label>
+                            <input type="text" id="atq_alto_triangulos" placeholder="Ej: 1-4-6">
+                            <div class="hint">Conexiones de pase</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 3)</label>
+                            <textarea id="atq_alto_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="atq_alto_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+
+                    <!-- VS BLOQUE MEDIO (Progresión) -->
+                    <div class="phase-card">
+                        <h3>🟡 VS BLOQUE MEDIO<br><small>(Progresión)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Jugadores Clave</label>
+                            <input type="text" id="atq_medio_jugadores" placeholder="Quiénes destacan">
+                        </div>
+                        <div class="form-group">
+                            <label>Zonas Activas</label>
+                            <input type="text" id="atq_medio_zonas" placeholder="Bandas/centro">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 3)</label>
+                            <textarea id="atq_medio_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="atq_medio_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+
+                    <!-- VS BLOQUE BAJO (Finalización) -->
+                    <div class="phase-card">
+                        <h3>🟢 VS BLOQUE BAJO<br><small>(Finalización)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Cómo Finalizan</label>
+                            <input type="text" id="atq_bajo_como" placeholder="Centros/juego interior">
+                        </div>
+                        <div class="form-group">
+                            <label>Jugadores en Área</label>
+                            <input type="text" id="atq_bajo_jugadores" placeholder="Quiénes rematan">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="atq_bajo_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="atq_bajo_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(1)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(3)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 3: DEFENSA ORGANIZADA -->
+            <div class="form-section" id="section3">
+                <h2 class="section-title">🛡️ Defensa Organizada del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Cómo defiende el rival en cada altura de su bloque defensivo.
+                </div>
+
+                <div class="phase-grid">
+                    <!-- PRESSING ALTO -->
+                    <div class="phase-card">
+                        <h3>🔴 PRESSING ALTO</h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Estructura</label>
+                            <input type="text" id="def_alto_estructura" placeholder="Ej: 4-4-2">
+                            <div class="hint">Sistema defensivo</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Gatillos</label>
+                            <input type="text" id="def_alto_gatillos" placeholder="Cuándo presionan">
+                            <div class="hint">Ej: pase al DC</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="def_alto_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>💪 Fortaleza</label>
+                            <input type="text" id="def_alto_fortaleza" placeholder="Punto fuerte">
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE MEDIO -->
+                    <div class="phase-card">
+                        <h3>🟡 BLOQUE MEDIO</h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Compactación</label>
+                            <input type="text" id="def_medio_compactacion" placeholder="Distancia líneas">
+                            <div class="hint">Ej: 30m de bloque</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Coberturas</label>
+                            <input type="text" id="def_medio_coberturas" placeholder="Cómo cubren">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="def_medio_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>💪 Fortaleza</label>
+                            <input type="text" id="def_medio_fortaleza" placeholder="Punto fuerte">
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE BAJO -->
+                    <div class="phase-card">
+                        <h3>🟢 BLOQUE BAJO</h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Organización</label>
+                            <input type="text" id="def_bajo_organizacion" placeholder="Cómo se organizan">
+                        </div>
+                        <div class="form-group">
+                            <label>Marcajes</label>
+                            <input type="text" id="def_bajo_marcajes" placeholder="Zona/individual/mixto">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="def_bajo_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="def_bajo_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(2)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(4)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 4: TRANSICIONES -->
+            <div class="form-section" id="section4">
+                <h2 class="section-title">⚡ Transiciones del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Cómo el rival cambia entre fases y los equilibrios/desbalances que genera.
+                </div>
+
+                <div class="form-row">
+                    <!-- TRANSICIÓN DEF→ATQ -->
+                    <div class="phase-card" style="margin: 0;">
+                        <h3>⚡→ DEFENSA → ATAQUE<br><small>(Contraataque)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Velocidad</label>
+                            <select id="trans_def_atq_velocidad">
+                                <option value="">Seleccionar...</option>
+                                <option value="Rápida">⚡ Rápida</option>
+                                <option value="Media">➡️ Media</option>
+                                <option value="Lenta">🐌 Lenta</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Jugadores Clave</label>
+                            <input type="text" id="trans_def_atq_jugadores" placeholder="Quiénes protagonizan">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="trans_def_atq_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>🛡️ Cómo Cortar</label>
+                            <input type="text" id="trans_def_atq_cortar" placeholder="Cómo podemos neutralizarla">
+                        </div>
+                    </div>
+
+                    <!-- TRANSICIÓN ATQ→DEF -->
+                    <div class="phase-card" style="margin: 0;">
+                        <h3>←⚡ ATAQUE → DEFENSA<br><small>(Repliegue)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Equilibrios</label>
+                            <input type="text" id="trans_atq_def_equilibrios" placeholder="Quiénes quedan atrás">
+                            <div class="hint">Al atacar</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Repliegue</label>
+                            <select id="trans_atq_def_repliegue">
+                                <option value="">Seleccionar...</option>
+                                <option value="Pressing inmediato">⚡ Pressing inmediato</option>
+                                <option value="Repliegue rápido">🏃 Repliegue rápido</option>
+                                <option value="Repliegue lento">🚶 Repliegue lento</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="trans_atq_def_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Desbalance</label>
+                            <input type="text" id="trans_atq_def_desbalance" placeholder="Dónde están expuestos">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(3)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(5)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 5: ABP -->
+            <div class="form-section" id="section5">
+                <h2 class="section-title">🎯 Acciones a Balón Parado (ABP)</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Córners, faltas y estrategias a balón parado del rival.
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Córners a Favor</label>
+                        <textarea id="abp_corners_favor" placeholder="Estructura, ejecutor, zonas..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Faltas a Favor</label>
+                        <textarea id="abp_faltas_favor" placeholder="Ejecutores, estrategias..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Córners en Contra (Defensa)</label>
+                        <textarea id="abp_corners_contra" placeholder="Organización defensiva..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>⚠️ Debilidad en ABP</label>
+                        <textarea id="abp_debilidad" placeholder="Qué podemos explotar..."></textarea>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(4)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(6)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 6: JUGADORES CLAVE -->
+            <div class="form-section" id="section6">
+                <h2 class="section-title">⭐ Jugadores Clave del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Identifica:</strong> Los 3-5 jugadores más importantes del rival (máximo 5).
+                </div>
+
+                <div id="jugadores-container">
+                    <!-- Jugador 1 -->
+                    <div class="phase-card" style="margin-bottom: 20px;">
+                        <h3>Jugador 1</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dorsal</label>
+                                <input type="text" id="jug1_numero" placeholder="#10">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="jug1_nombre" placeholder="Apellido">
+                            </div>
+                            <div class="form-group">
+                                <label>Posición</label>
+                                <input type="text" id="jug1_posicion" placeholder="MC">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nivel de Peligro</label>
+                                <select id="jug1_nivel">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="peligroso">🔴 Peligroso</option>
+                                    <option value="normal">🔵 Normal</option>
+                                    <option value="debil">🟢 Débil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Características</label>
+                                <input type="text" id="jug1_caracteristicas" placeholder="Breve descripción">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jugador 2 -->
+                    <div class="phase-card" style="margin-bottom: 20px;">
+                        <h3>Jugador 2</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dorsal</label>
+                                <input type="text" id="jug2_numero" placeholder="#9">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="jug2_nombre" placeholder="Apellido">
+                            </div>
+                            <div class="form-group">
+                                <label>Posición</label>
+                                <input type="text" id="jug2_posicion" placeholder="DC">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nivel de Peligro</label>
+                                <select id="jug2_nivel">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="peligroso">🔴 Peligroso</option>
+                                    <option value="normal">🔵 Normal</option>
+                                    <option value="debil">🟢 Débil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Características</label>
+                                <input type="text" id="jug2_caracteristicas" placeholder="Breve descripción">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jugador 3 -->
+                    <div class="phase-card" style="margin-bottom: 20px;">
+                        <h3>Jugador 3</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dorsal</label>
+                                <input type="text" id="jug3_numero" placeholder="#7">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="jug3_nombre" placeholder="Apellido">
+                            </div>
+                            <div class="form-group">
+                                <label>Posición</label>
+                                <input type="text" id="jug3_posicion" placeholder="EI">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nivel de Peligro</label>
+                                <select id="jug3_nivel">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="peligroso">🔴 Peligroso</option>
+                                    <option value="normal">🔵 Normal</option>
+                                    <option value="debil">🟢 Débil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Características</label>
+                                <input type="text" id="jug3_caracteristicas" placeholder="Breve descripción">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(5)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(7)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 7: GENERAR PDF -->
+            <div class="form-section" id="section7">
+                <h2 class="section-title">📄 Generar Informe PDF</h2>
+
+                <div class="info-box" style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); border-left-color: #10B981; color: #065F46;">
+                    <strong style="color: #064E3B;">✅ Todo listo!</strong><br>
+                    Revisa el resumen y genera tu informe táctico profesional.
+                </div>
+
+                <div class="phase-card">
+                    <h3>📋 Resumen del Informe</h3>
+                    <div id="resumen-informe">
+                        <p><strong>Rival:</strong> <span id="resumen_rival">-</span></p>
+                        <p><strong>Sistema:</strong> <span id="resumen_sistema">-</span></p>
+                        <p><strong>Jornada:</strong> <span id="resumen_jornada">-</span></p>
+                    </div>
+                </div>
+
+                <button class="btn-success" onclick="generarPDF()" style="margin-top: 20px;">
+                    📥 Descargar Informe PDF
+                </button>
+
+                <!-- Loading -->
+                <div class="loading" id="loading-pdf">
+                    <div class="spinner"></div>
+                    <p style="font-size: 18px; font-weight: 600; color: #374151;">Generando informe profesional...</p>
+                </div>
+
+                <div class="buttons" style="margin-top: 30px;">
+                    <button class="btn-secondary" onclick="prevSection(6)">← Anterior</button>
+                    <div></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let currentSection = 0;
+        let datosAnalizadosIA = null;
+
+        function nextSection(section) {
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`section${section}`).classList.add('active');
+
+            // Update progress
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                step.classList.remove('active');
+                if (index < section) {
+                    step.classList.add('completed');
+                } else if (index === section) {
+                    step.classList.add('active');
+                }
+            });
+
+            const progress = (section / 7) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            currentSection = section;
+            window.scrollTo(0, 0);
+        }
+
+        function prevSection(section) {
+            nextSection(section);
+        }
+
+        async function analizarConIA() {
+            const notas = document.getElementById('notas_partido').value;
+            const provider = document.getElementById('ia_provider').value;
+
+            if (!notas || notas.length < 50) {
+                alert('⚠️ Escribe al menos 50 caracteres para un análisis adecuado');
+                return;
+            }
+
+            document.getElementById('loading-ia').classList.add('active');
+
+            try {
+                const response = await fetch('/analizar_notas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notas, provider })
+                });
+
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    datosAnalizadosIA = resultado.data;
+
+                    // Auto-rellenar TODOS los campos del formulario
+                    autoRellenarCampos(resultado.data);
+
+                    alert('✅ Análisis completado! Todos los campos se han rellenado automáticamente. Revisa y ajusta lo que necesites.');
+                } else {
+                    alert('❌ Error: ' + resultado.error);
+                }
+            } catch (error) {
+                alert('❌ Error de conexión: ' + error.message);
+            } finally {
+                document.getElementById('loading-ia').classList.remove('active');
+            }
+        }
+
+        function autoRellenarCampos(data) {
+            // Info básica
+            if (data.sistema_tactico) {
+                document.getElementById('sistema').value = data.sistema_tactico;
+            }
+
+            // ATAQUE
+            if (data.ataque) {
+                // VS Bloque Alto
+                if (data.ataque.vs_bloque_alto) {
+                    const alto = data.ataque.vs_bloque_alto;
+                    if (alto.estructura) document.getElementById('atq_alto_estructura').value = alto.estructura;
+                    if (alto.triangulos) document.getElementById('atq_alto_triangulos').value = alto.triangulos;
+                    if (alto.patrones && Array.isArray(alto.patrones)) {
+                        document.getElementById('atq_alto_patrones').value = alto.patrones.join('\n');
+                    }
+                    if (alto.debilidad) document.getElementById('atq_alto_debilidad').value = alto.debilidad;
+                }
+
+                // VS Bloque Medio
+                if (data.ataque.vs_bloque_medio) {
+                    const medio = data.ataque.vs_bloque_medio;
+                    if (medio.jugadores_clave) document.getElementById('atq_medio_jugadores').value = medio.jugadores_clave;
+                    if (medio.zonas_activas) document.getElementById('atq_medio_zonas').value = medio.zonas_activas;
+                    if (medio.patrones && Array.isArray(medio.patrones)) {
+                        document.getElementById('atq_medio_patrones').value = medio.patrones.join('\n');
+                    }
+                    if (medio.debilidad) document.getElementById('atq_medio_debilidad').value = medio.debilidad;
+                }
+
+                // VS Bloque Bajo
+                if (data.ataque.vs_bloque_bajo) {
+                    const bajo = data.ataque.vs_bloque_bajo;
+                    if (bajo.como_finalizan) document.getElementById('atq_bajo_como').value = bajo.como_finalizan;
+                    if (bajo.jugadores_area) document.getElementById('atq_bajo_jugadores').value = bajo.jugadores_area;
+                    if (bajo.patrones && Array.isArray(bajo.patrones)) {
+                        document.getElementById('atq_bajo_patrones').value = bajo.patrones.join('\n');
+                    }
+                    if (bajo.debilidad) document.getElementById('atq_bajo_debilidad').value = bajo.debilidad;
+                }
+            }
+
+            // DEFENSA
+            if (data.defensa) {
+                // Pressing Alto
+                if (data.defensa.pressing_alto) {
+                    const alto = data.defensa.pressing_alto;
+                    if (alto.estructura) document.getElementById('def_alto_estructura').value = alto.estructura;
+                    if (alto.gatillos) document.getElementById('def_alto_gatillos').value = alto.gatillos;
+                    if (alto.patrones && Array.isArray(alto.patrones)) {
+                        document.getElementById('def_alto_patrones').value = alto.patrones.join('\n');
+                    }
+                    if (alto.fortaleza) document.getElementById('def_alto_fortaleza').value = alto.fortaleza;
+                }
+
+                // Bloque Medio
+                if (data.defensa.bloque_medio) {
+                    const medio = data.defensa.bloque_medio;
+                    if (medio.compactacion) document.getElementById('def_medio_compactacion').value = medio.compactacion;
+                    if (medio.coberturas) document.getElementById('def_medio_coberturas').value = medio.coberturas;
+                    if (medio.patrones && Array.isArray(medio.patrones)) {
+                        document.getElementById('def_medio_patrones').value = medio.patrones.join('\n');
+                    }
+                    if (medio.fortaleza) document.getElementById('def_medio_fortaleza').value = medio.fortaleza;
+                }
+
+                // Bloque Bajo
+                if (data.defensa.bloque_bajo) {
+                    const bajo = data.defensa.bloque_bajo;
+                    if (bajo.organizacion) document.getElementById('def_bajo_organizacion').value = bajo.organizacion;
+                    if (bajo.marcajes) document.getElementById('def_bajo_marcajes').value = bajo.marcajes;
+                    if (bajo.patrones && Array.isArray(bajo.patrones)) {
+                        document.getElementById('def_bajo_patrones').value = bajo.patrones.join('\n');
+                    }
+                    if (bajo.debilidad) document.getElementById('def_bajo_debilidad').value = bajo.debilidad;
+                }
+            }
+
+            // TRANSICIONES
+            if (data.transiciones) {
+                // DEF → ATQ
+                if (data.transiciones.def_atq) {
+                    const defAtq = data.transiciones.def_atq;
+                    if (defAtq.velocidad) document.getElementById('trans_def_atq_velocidad').value = defAtq.velocidad;
+                    if (defAtq.jugadores_clave) document.getElementById('trans_def_atq_jugadores').value = defAtq.jugadores_clave;
+                    if (defAtq.patrones && Array.isArray(defAtq.patrones)) {
+                        document.getElementById('trans_def_atq_patrones').value = defAtq.patrones.join('\n');
+                    }
+                    if (defAtq.como_cortar) document.getElementById('trans_def_atq_cortar').value = defAtq.como_cortar;
+                }
+
+                // ATQ → DEF
+                if (data.transiciones.atq_def) {
+                    const atqDef = data.transiciones.atq_def;
+                    if (atqDef.equilibrios) document.getElementById('trans_atq_def_equilibrios').value = atqDef.equilibrios;
+                    if (atqDef.repliegue) document.getElementById('trans_atq_def_repliegue').value = atqDef.repliegue;
+                    if (atqDef.patrones && Array.isArray(atqDef.patrones)) {
+                        document.getElementById('trans_atq_def_patrones').value = atqDef.patrones.join('\n');
+                    }
+                    if (atqDef.desbalance) document.getElementById('trans_atq_def_desbalance').value = atqDef.desbalance;
+                }
+            }
+
+            // ABP
+            if (data.abp) {
+                if (data.abp.corners_favor) document.getElementById('abp_corners_favor').value = data.abp.corners_favor;
+                if (data.abp.faltas_favor) document.getElementById('abp_faltas_favor').value = data.abp.faltas_favor;
+                if (data.abp.corners_contra) document.getElementById('abp_corners_contra').value = data.abp.corners_contra;
+                if (data.abp.debilidad) document.getElementById('abp_debilidad').value = data.abp.debilidad;
+            }
+
+            // JUGADORES CLAVE
+            if (data.jugadores_clave && Array.isArray(data.jugadores_clave)) {
+                data.jugadores_clave.forEach((jugador, index) => {
+                    if (index < 3) { // Solo primeros 3 jugadores
+                        const num = index + 1;
+                        if (jugador.numero) document.getElementById(`jug${num}_numero`).value = jugador.numero;
+                        if (jugador.nombre) document.getElementById(`jug${num}_nombre`).value = jugador.nombre;
+                        if (jugador.posicion) document.getElementById(`jug${num}_posicion`).value = jugador.posicion;
+                        if (jugador.nivel) document.getElementById(`jug${num}_nivel`).value = jugador.nivel;
+                        if (jugador.caracteristicas) document.getElementById(`jug${num}_caracteristicas`).value = jugador.caracteristicas;
+                    }
+                });
+            }
+
+            console.log('✅ Todos los campos auto-rellenados');
+        }
+
+        async function generarPDF() {
+            // Update resumen
+            document.getElementById('resumen_rival').textContent = document.getElementById('nombre_rival').value || '-';
+            document.getElementById('resumen_sistema').textContent = document.getElementById('sistema').value || '-';
+            document.getElementById('resumen_jornada').textContent = document.getElementById('jornada').value || '-';
+
+            document.getElementById('loading-pdf').classList.add('active');
+
+            // Recopilar todos los datos
+            const datos = {
+                // Info básica
+                nombre_rival: document.getElementById('nombre_rival').value,
+                jornada: document.getElementById('jornada').value,
+                sistema: document.getElementById('sistema').value,
+                posicion: document.getElementById('posicion').value,
+                racha: document.getElementById('racha').value,
+                goles_favor: document.getElementById('goles_favor').value,
+                goles_contra: document.getElementById('goles_contra').value,
+                bajas: document.getElementById('bajas').value,
+
+                // Ataque
+                ataque: {
+                    vs_bloque_alto: {
+                        estructura: document.getElementById('atq_alto_estructura').value,
+                        triangulos: document.getElementById('atq_alto_triangulos').value,
+                        patrones: document.getElementById('atq_alto_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('atq_alto_debilidad').value
+                    },
+                    vs_bloque_medio: {
+                        jugadores_clave: document.getElementById('atq_medio_jugadores').value,
+                        zonas_activas: document.getElementById('atq_medio_zonas').value,
+                        patrones: document.getElementById('atq_medio_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('atq_medio_debilidad').value
+                    },
+                    vs_bloque_bajo: {
+                        como_finalizan: document.getElementById('atq_bajo_como').value,
+                        jugadores_area: document.getElementById('atq_bajo_jugadores').value,
+                        patrones: document.getElementById('atq_bajo_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('atq_bajo_debilidad').value
+                    }
+                },
+
+                // Defensa
+                defensa: {
+                    pressing_alto: {
+                        estructura: document.getElementById('def_alto_estructura').value,
+                        gatillos: document.getElementById('def_alto_gatillos').value,
+                        patrones: document.getElementById('def_alto_patrones').value.split('\n').filter(p => p.trim()),
+                        fortaleza: document.getElementById('def_alto_fortaleza').value
+                    },
+                    bloque_medio: {
+                        compactacion: document.getElementById('def_medio_compactacion').value,
+                        coberturas: document.getElementById('def_medio_coberturas').value,
+                        patrones: document.getElementById('def_medio_patrones').value.split('\n').filter(p => p.trim()),
+                        fortaleza: document.getElementById('def_medio_fortaleza').value
+                    },
+                    bloque_bajo: {
+                        organizacion: document.getElementById('def_bajo_organizacion').value,
+                        marcajes: document.getElementById('def_bajo_marcajes').value,
+                        patrones: document.getElementById('def_bajo_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('def_bajo_debilidad').value
+                    }
+                },
+
+                // Transiciones
+                transiciones: {
+                    def_atq: {
+                        velocidad: document.getElementById('trans_def_atq_velocidad').value,
+                        jugadores_clave: document.getElementById('trans_def_atq_jugadores').value,
+                        patrones: document.getElementById('trans_def_atq_patrones').value.split('\n').filter(p => p.trim()),
+                        como_cortar: document.getElementById('trans_def_atq_cortar').value
+                    },
+                    atq_def: {
+                        equilibrios: document.getElementById('trans_atq_def_equilibrios').value,
+                        repliegue: document.getElementById('trans_atq_def_repliegue').value,
+                        patrones: document.getElementById('trans_atq_def_patrones').value.split('\n').filter(p => p.trim()),
+                        desbalance: document.getElementById('trans_atq_def_desbalance').value
+                    }
+                },
+
+                // ABP
+                abp: {
+                    corners_favor: document.getElementById('abp_corners_favor').value,
+                    faltas_favor: document.getElementById('abp_faltas_favor').value,
+                    corners_contra: document.getElementById('abp_corners_contra').value,
+                    debilidad: document.getElementById('abp_debilidad').value
+                },
+
+                // Jugadores
+                jugadores_clave: [
+                    {
+                        numero: document.getElementById('jug1_numero').value,
+                        nombre: document.getElementById('jug1_nombre').value,
+                        posicion: document.getElementById('jug1_posicion').value,
+                        nivel: document.getElementById('jug1_nivel').value,
+                        caracteristicas: document.getElementById('jug1_caracteristicas').value
+                    },
+                    {
+                        numero: document.getElementById('jug2_numero').value,
+                        nombre: document.getElementById('jug2_nombre').value,
+                        posicion: document.getElementById('jug2_posicion').value,
+                        nivel: document.getElementById('jug2_nivel').value,
+                        caracteristicas: document.getElementById('jug2_caracteristicas').value
+                    },
+                    {
+                        numero: document.getElementById('jug3_numero').value,
+                        nombre: document.getElementById('jug3_nombre').value,
+                        posicion: document.getElementById('jug3_posicion').value,
+                        nivel: document.getElementById('jug3_nivel').value,
+                        caracteristicas: document.getElementById('jug3_caracteristicas').value
+                    }
+                ].filter(j => j.numero) // Solo jugadores con dorsal
+            };
+
+            try {
+                const response = await fetch('/generar_v2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Informe_${datos.nombre_rival.replace(/\s/g, '_')}_v2.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+
+                    alert('✅ Informe generado correctamente!');
+                } else {
+                    const error = await response.text();
+                    alert('❌ Error al generar PDF: ' + error);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            } finally {
+                document.getElementById('loading-pdf').classList.remove('active');
+            }
+        }
+
+        function logout() {
+            if (confirm('¿Seguro que quieres cerrar sesión?')) {
+                window.location.href = '/logout';
+            }
+        }
+    </script>
+</body>
+</html>
