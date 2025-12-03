@@ -40,10 +40,10 @@ def login():
 
 @app.route('/app')
 def app_page():
-    """Página principal de la aplicación"""
+    """Página principal de la aplicación - v2.0"""
     if not session.get('authenticated'):
         return redirect('/')
-    return render_template('index.html')
+    return render_template('index_v2.html')
 
 @app.route('/generar', methods=['POST'])
 def generar():
@@ -192,6 +192,50 @@ def generar_plan():
 
     except Exception as e:
         print(f"Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/generar_v2', methods=['POST'])
+def generar_v2():
+    """Generar el PDF v2.0 con análisis por fases"""
+    if not session.get('authenticated'):
+        return jsonify({'error': 'No autorizado'}), 401
+
+    try:
+        datos = request.json
+
+        # Crear archivo temporal para el PDF
+        pdf_path = tempfile.mktemp(suffix='.pdf')
+
+        # TODO: Crear generar_informe_v2_pdf cuando esté listo
+        # Por ahora usamos el viejo temporalmente
+        generar_informe_pdf(datos, pdf_path)
+
+        # Leer el PDF
+        with open(pdf_path, 'rb') as pdf_file:
+            pdf_data = pdf_file.read()
+
+        # Limpiar archivo temporal
+        try:
+            os.unlink(pdf_path)
+        except:
+            pass
+
+        # Nombre del archivo
+        nombre_archivo = f"Informe_v2_{datos.get('nombre_rival', 'Rival').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+
+        # Enviar el PDF
+        return send_file(
+            io.BytesIO(pdf_data),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=nombre_archivo
+        )
+
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
