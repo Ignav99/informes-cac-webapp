@@ -579,8 +579,433 @@
                 </div>
             </div>
 
-            <!-- TO BE CONTINUED... -->
-            <!-- Las siguientes secciones (Ataque, Defensa, etc.) las añado en el siguiente mensaje -->
+            <!-- PASO 2: ATAQUE ORGANIZADO -->
+            <div class="form-section" id="section2">
+                <h2 class="section-title">⚔️ Ataque Organizado del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Cómo ataca el rival en cada fase según la altura de tu bloque defensivo.
+                </div>
+
+                <div class="phase-grid">
+                    <!-- VS BLOQUE ALTO (Creación) -->
+                    <div class="phase-card">
+                        <h3>🔴 VS BLOQUE ALTO<br><small>(Creación / Salida)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Estructura</label>
+                            <input type="text" id="atq_alto_estructura" placeholder="Ej: 4+1">
+                            <div class="hint">Ej: 4+1, 3+2</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Triángulos</label>
+                            <input type="text" id="atq_alto_triangulos" placeholder="Ej: 1-4-6">
+                            <div class="hint">Conexiones de pase</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 3)</label>
+                            <textarea id="atq_alto_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="atq_alto_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+
+                    <!-- VS BLOQUE MEDIO (Progresión) -->
+                    <div class="phase-card">
+                        <h3>🟡 VS BLOQUE MEDIO<br><small>(Progresión)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Jugadores Clave</label>
+                            <input type="text" id="atq_medio_jugadores" placeholder="Quiénes destacan">
+                        </div>
+                        <div class="form-group">
+                            <label>Zonas Activas</label>
+                            <input type="text" id="atq_medio_zonas" placeholder="Bandas/centro">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 3)</label>
+                            <textarea id="atq_medio_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="atq_medio_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+
+                    <!-- VS BLOQUE BAJO (Finalización) -->
+                    <div class="phase-card">
+                        <h3>🟢 VS BLOQUE BAJO<br><small>(Finalización)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Cómo Finalizan</label>
+                            <input type="text" id="atq_bajo_como" placeholder="Centros/juego interior">
+                        </div>
+                        <div class="form-group">
+                            <label>Jugadores en Área</label>
+                            <input type="text" id="atq_bajo_jugadores" placeholder="Quiénes rematan">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="atq_bajo_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="atq_bajo_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(1)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(3)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 3: DEFENSA ORGANIZADA -->
+            <div class="form-section" id="section3">
+                <h2 class="section-title">🛡️ Defensa Organizada del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Cómo defiende el rival en cada altura de su bloque defensivo.
+                </div>
+
+                <div class="phase-grid">
+                    <!-- PRESSING ALTO -->
+                    <div class="phase-card">
+                        <h3>🔴 PRESSING ALTO</h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Estructura</label>
+                            <input type="text" id="def_alto_estructura" placeholder="Ej: 4-4-2">
+                            <div class="hint">Sistema defensivo</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Gatillos</label>
+                            <input type="text" id="def_alto_gatillos" placeholder="Cuándo presionan">
+                            <div class="hint">Ej: pase al DC</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="def_alto_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>💪 Fortaleza</label>
+                            <input type="text" id="def_alto_fortaleza" placeholder="Punto fuerte">
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE MEDIO -->
+                    <div class="phase-card">
+                        <h3>🟡 BLOQUE MEDIO</h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Compactación</label>
+                            <input type="text" id="def_medio_compactacion" placeholder="Distancia líneas">
+                            <div class="hint">Ej: 30m de bloque</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Coberturas</label>
+                            <input type="text" id="def_medio_coberturas" placeholder="Cómo cubren">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="def_medio_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>💪 Fortaleza</label>
+                            <input type="text" id="def_medio_fortaleza" placeholder="Punto fuerte">
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE BAJO -->
+                    <div class="phase-card">
+                        <h3>🟢 BLOQUE BAJO</h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Organización</label>
+                            <input type="text" id="def_bajo_organizacion" placeholder="Cómo se organizan">
+                        </div>
+                        <div class="form-group">
+                            <label>Marcajes</label>
+                            <input type="text" id="def_bajo_marcajes" placeholder="Zona/individual/mixto">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="def_bajo_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Debilidad</label>
+                            <input type="text" id="def_bajo_debilidad" placeholder="Qué explotar">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(2)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(4)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 4: TRANSICIONES -->
+            <div class="form-section" id="section4">
+                <h2 class="section-title">⚡ Transiciones del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Cómo el rival cambia entre fases y los equilibrios/desbalances que genera.
+                </div>
+
+                <div class="form-row">
+                    <!-- TRANSICIÓN DEF→ATQ -->
+                    <div class="phase-card" style="margin: 0;">
+                        <h3>⚡→ DEFENSA → ATAQUE<br><small>(Contraataque)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Velocidad</label>
+                            <select id="trans_def_atq_velocidad">
+                                <option value="">Seleccionar...</option>
+                                <option value="Rápida">⚡ Rápida</option>
+                                <option value="Media">➡️ Media</option>
+                                <option value="Lenta">🐌 Lenta</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Jugadores Clave</label>
+                            <input type="text" id="trans_def_atq_jugadores" placeholder="Quiénes protagonizan">
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="trans_def_atq_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>🛡️ Cómo Cortar</label>
+                            <input type="text" id="trans_def_atq_cortar" placeholder="Cómo podemos neutralizarla">
+                        </div>
+                    </div>
+
+                    <!-- TRANSICIÓN ATQ→DEF -->
+                    <div class="phase-card" style="margin: 0;">
+                        <h3>←⚡ ATAQUE → DEFENSA<br><small>(Repliegue)</small></h3>
+                        <div class="mini-field"></div>
+                        <div class="form-group">
+                            <label>Equilibrios</label>
+                            <input type="text" id="trans_atq_def_equilibrios" placeholder="Quiénes quedan atrás">
+                            <div class="hint">Al atacar</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Repliegue</label>
+                            <select id="trans_atq_def_repliegue">
+                                <option value="">Seleccionar...</option>
+                                <option value="Pressing inmediato">⚡ Pressing inmediato</option>
+                                <option value="Repliegue rápido">🏃 Repliegue rápido</option>
+                                <option value="Repliegue lento">🚶 Repliegue lento</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Patrones (máx 2)</label>
+                            <textarea id="trans_atq_def_patrones" rows="3" placeholder="• Patrón 1&#10;• Patrón 2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>⚠️ Desbalance</label>
+                            <input type="text" id="trans_atq_def_desbalance" placeholder="Dónde están expuestos">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(3)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(5)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 5: ABP -->
+            <div class="form-section" id="section5">
+                <h2 class="section-title">🎯 Acciones a Balón Parado (ABP)</h2>
+
+                <div class="info-box">
+                    <strong>💡 Analiza:</strong> Córners, faltas y estrategias a balón parado del rival.
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Córners a Favor</label>
+                        <textarea id="abp_corners_favor" placeholder="Estructura, ejecutor, zonas..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Faltas a Favor</label>
+                        <textarea id="abp_faltas_favor" placeholder="Ejecutores, estrategias..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Córners en Contra (Defensa)</label>
+                        <textarea id="abp_corners_contra" placeholder="Organización defensiva..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>⚠️ Debilidad en ABP</label>
+                        <textarea id="abp_debilidad" placeholder="Qué podemos explotar..."></textarea>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(4)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(6)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 6: JUGADORES CLAVE -->
+            <div class="form-section" id="section6">
+                <h2 class="section-title">⭐ Jugadores Clave del Rival</h2>
+
+                <div class="info-box">
+                    <strong>💡 Identifica:</strong> Los 3-5 jugadores más importantes del rival (máximo 5).
+                </div>
+
+                <div id="jugadores-container">
+                    <!-- Jugador 1 -->
+                    <div class="phase-card" style="margin-bottom: 20px;">
+                        <h3>Jugador 1</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dorsal</label>
+                                <input type="text" id="jug1_numero" placeholder="#10">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="jug1_nombre" placeholder="Apellido">
+                            </div>
+                            <div class="form-group">
+                                <label>Posición</label>
+                                <input type="text" id="jug1_posicion" placeholder="MC">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nivel de Peligro</label>
+                                <select id="jug1_nivel">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="peligroso">🔴 Peligroso</option>
+                                    <option value="normal">🔵 Normal</option>
+                                    <option value="debil">🟢 Débil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Características</label>
+                                <input type="text" id="jug1_caracteristicas" placeholder="Breve descripción">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jugador 2 -->
+                    <div class="phase-card" style="margin-bottom: 20px;">
+                        <h3>Jugador 2</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dorsal</label>
+                                <input type="text" id="jug2_numero" placeholder="#9">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="jug2_nombre" placeholder="Apellido">
+                            </div>
+                            <div class="form-group">
+                                <label>Posición</label>
+                                <input type="text" id="jug2_posicion" placeholder="DC">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nivel de Peligro</label>
+                                <select id="jug2_nivel">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="peligroso">🔴 Peligroso</option>
+                                    <option value="normal">🔵 Normal</option>
+                                    <option value="debil">🟢 Débil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Características</label>
+                                <input type="text" id="jug2_caracteristicas" placeholder="Breve descripción">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jugador 3 -->
+                    <div class="phase-card" style="margin-bottom: 20px;">
+                        <h3>Jugador 3</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dorsal</label>
+                                <input type="text" id="jug3_numero" placeholder="#7">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="jug3_nombre" placeholder="Apellido">
+                            </div>
+                            <div class="form-group">
+                                <label>Posición</label>
+                                <input type="text" id="jug3_posicion" placeholder="EI">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nivel de Peligro</label>
+                                <select id="jug3_nivel">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="peligroso">🔴 Peligroso</option>
+                                    <option value="normal">🔵 Normal</option>
+                                    <option value="debil">🟢 Débil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Características</label>
+                                <input type="text" id="jug3_caracteristicas" placeholder="Breve descripción">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="prevSection(5)">← Anterior</button>
+                    <button class="btn-primary" onclick="nextSection(7)">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- PASO 7: GENERAR PDF -->
+            <div class="form-section" id="section7">
+                <h2 class="section-title">📄 Generar Informe PDF</h2>
+
+                <div class="info-box" style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); border-left-color: #10B981; color: #065F46;">
+                    <strong style="color: #064E3B;">✅ Todo listo!</strong><br>
+                    Revisa el resumen y genera tu informe táctico profesional.
+                </div>
+
+                <div class="phase-card">
+                    <h3>📋 Resumen del Informe</h3>
+                    <div id="resumen-informe">
+                        <p><strong>Rival:</strong> <span id="resumen_rival">-</span></p>
+                        <p><strong>Sistema:</strong> <span id="resumen_sistema">-</span></p>
+                        <p><strong>Jornada:</strong> <span id="resumen_jornada">-</span></p>
+                    </div>
+                </div>
+
+                <button class="btn-success" onclick="generarPDF()" style="margin-top: 20px;">
+                    📥 Descargar Informe PDF
+                </button>
+
+                <!-- Loading -->
+                <div class="loading" id="loading-pdf">
+                    <div class="spinner"></div>
+                    <p style="font-size: 18px; font-weight: 600; color: #374151;">Generando informe profesional...</p>
+                </div>
+
+                <div class="buttons" style="margin-top: 30px;">
+                    <button class="btn-secondary" onclick="prevSection(6)">← Anterior</button>
+                    <div></div>
+                </div>
+            </div>
 
         </div>
     </div>
@@ -649,6 +1074,150 @@
                 alert('❌ Error de conexión: ' + error.message);
             } finally {
                 document.getElementById('loading-ia').classList.remove('active');
+            }
+        }
+
+        async function generarPDF() {
+            // Update resumen
+            document.getElementById('resumen_rival').textContent = document.getElementById('nombre_rival').value || '-';
+            document.getElementById('resumen_sistema').textContent = document.getElementById('sistema').value || '-';
+            document.getElementById('resumen_jornada').textContent = document.getElementById('jornada').value || '-';
+
+            document.getElementById('loading-pdf').classList.add('active');
+
+            // Recopilar todos los datos
+            const datos = {
+                // Info básica
+                nombre_rival: document.getElementById('nombre_rival').value,
+                jornada: document.getElementById('jornada').value,
+                sistema: document.getElementById('sistema').value,
+                posicion: document.getElementById('posicion').value,
+                racha: document.getElementById('racha').value,
+                goles_favor: document.getElementById('goles_favor').value,
+                goles_contra: document.getElementById('goles_contra').value,
+                bajas: document.getElementById('bajas').value,
+
+                // Ataque
+                ataque: {
+                    vs_bloque_alto: {
+                        estructura: document.getElementById('atq_alto_estructura').value,
+                        triangulos: document.getElementById('atq_alto_triangulos').value,
+                        patrones: document.getElementById('atq_alto_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('atq_alto_debilidad').value
+                    },
+                    vs_bloque_medio: {
+                        jugadores_clave: document.getElementById('atq_medio_jugadores').value,
+                        zonas_activas: document.getElementById('atq_medio_zonas').value,
+                        patrones: document.getElementById('atq_medio_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('atq_medio_debilidad').value
+                    },
+                    vs_bloque_bajo: {
+                        como_finalizan: document.getElementById('atq_bajo_como').value,
+                        jugadores_area: document.getElementById('atq_bajo_jugadores').value,
+                        patrones: document.getElementById('atq_bajo_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('atq_bajo_debilidad').value
+                    }
+                },
+
+                // Defensa
+                defensa: {
+                    pressing_alto: {
+                        estructura: document.getElementById('def_alto_estructura').value,
+                        gatillos: document.getElementById('def_alto_gatillos').value,
+                        patrones: document.getElementById('def_alto_patrones').value.split('\n').filter(p => p.trim()),
+                        fortaleza: document.getElementById('def_alto_fortaleza').value
+                    },
+                    bloque_medio: {
+                        compactacion: document.getElementById('def_medio_compactacion').value,
+                        coberturas: document.getElementById('def_medio_coberturas').value,
+                        patrones: document.getElementById('def_medio_patrones').value.split('\n').filter(p => p.trim()),
+                        fortaleza: document.getElementById('def_medio_fortaleza').value
+                    },
+                    bloque_bajo: {
+                        organizacion: document.getElementById('def_bajo_organizacion').value,
+                        marcajes: document.getElementById('def_bajo_marcajes').value,
+                        patrones: document.getElementById('def_bajo_patrones').value.split('\n').filter(p => p.trim()),
+                        debilidad: document.getElementById('def_bajo_debilidad').value
+                    }
+                },
+
+                // Transiciones
+                transiciones: {
+                    def_atq: {
+                        velocidad: document.getElementById('trans_def_atq_velocidad').value,
+                        jugadores_clave: document.getElementById('trans_def_atq_jugadores').value,
+                        patrones: document.getElementById('trans_def_atq_patrones').value.split('\n').filter(p => p.trim()),
+                        como_cortar: document.getElementById('trans_def_atq_cortar').value
+                    },
+                    atq_def: {
+                        equilibrios: document.getElementById('trans_atq_def_equilibrios').value,
+                        repliegue: document.getElementById('trans_atq_def_repliegue').value,
+                        patrones: document.getElementById('trans_atq_def_patrones').value.split('\n').filter(p => p.trim()),
+                        desbalance: document.getElementById('trans_atq_def_desbalance').value
+                    }
+                },
+
+                // ABP
+                abp: {
+                    corners_favor: document.getElementById('abp_corners_favor').value,
+                    faltas_favor: document.getElementById('abp_faltas_favor').value,
+                    corners_contra: document.getElementById('abp_corners_contra').value,
+                    debilidad: document.getElementById('abp_debilidad').value
+                },
+
+                // Jugadores
+                jugadores_clave: [
+                    {
+                        numero: document.getElementById('jug1_numero').value,
+                        nombre: document.getElementById('jug1_nombre').value,
+                        posicion: document.getElementById('jug1_posicion').value,
+                        nivel: document.getElementById('jug1_nivel').value,
+                        caracteristicas: document.getElementById('jug1_caracteristicas').value
+                    },
+                    {
+                        numero: document.getElementById('jug2_numero').value,
+                        nombre: document.getElementById('jug2_nombre').value,
+                        posicion: document.getElementById('jug2_posicion').value,
+                        nivel: document.getElementById('jug2_nivel').value,
+                        caracteristicas: document.getElementById('jug2_caracteristicas').value
+                    },
+                    {
+                        numero: document.getElementById('jug3_numero').value,
+                        nombre: document.getElementById('jug3_nombre').value,
+                        posicion: document.getElementById('jug3_posicion').value,
+                        nivel: document.getElementById('jug3_nivel').value,
+                        caracteristicas: document.getElementById('jug3_caracteristicas').value
+                    }
+                ].filter(j => j.numero) // Solo jugadores con dorsal
+            };
+
+            try {
+                const response = await fetch('/generar_v2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Informe_${datos.nombre_rival.replace(/\s/g, '_')}_v2.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+
+                    alert('✅ Informe generado correctamente!');
+                } else {
+                    const error = await response.text();
+                    alert('❌ Error al generar PDF: ' + error);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            } finally {
+                document.getElementById('loading-pdf').classList.remove('active');
             }
         }
 
