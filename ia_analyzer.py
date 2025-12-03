@@ -386,76 +386,145 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
             }
 
     def _construir_prompt_dibujo(self, fase, tipo, texto_tactico):
-        """Construye prompt para generar instrucciones de dibujo táctico"""
-        contextos = {
+        """Construye prompt para generar instrucciones de dibujo táctico - VERSIÓN MEJORADA"""
+
+        # Zonas específicas del campo según la fase
+        zonas_campo = {
             'ataque': {
-                'vs_bloque_alto': 'Representa cómo sale el equipo rival desde atrás contra pressing. Muestra portero, defensas, pivote y triángulos de pase.',
-                'vs_bloque_medio': 'Representa cómo progresa el rival en zona media. Muestra centrocampistas creativos y zonas de peligro.',
-                'vs_bloque_bajo': 'Representa cómo finaliza el rival. Muestra jugadores en área, centros laterales, rematadores.'
+                'vs_bloque_alto': {
+                    'descripcion': 'SALIDA DE BALÓN del rival (su campo, cerca de su portería)',
+                    'zona_x': '70-95',  # Lado derecho = su portería
+                    'explicacion': 'El RIVAL sale desde ATRÁS. Portero en X=92, defensas en X=75-82, pivote en X=65-70.'
+                },
+                'vs_bloque_medio': {
+                    'descripcion': 'PROGRESIÓN del rival (zona media del campo)',
+                    'zona_x': '40-70',
+                    'explicacion': 'El RIVAL progresa por CENTRO. Centrocampistas en X=45-60, extremos en X=35-50.'
+                },
+                'vs_bloque_bajo': {
+                    'descripcion': 'FINALIZACIÓN del rival (cerca de nuestra portería)',
+                    'zona_x': '5-35',  # Lado izquierdo = nuestra portería
+                    'explicacion': 'El RIVAL ataca NUESTRA ÁREA. Delanteros en X=10-25, centros desde X=5-15.'
+                }
             },
             'defensa': {
-                'pressing_alto': 'Representa la línea de pressing alto del rival. Muestra altura de presión y gatillos.',
-                'bloque_medio': 'Representa el bloque medio defensivo. Muestra compactación entre líneas.',
-                'bloque_bajo': 'Representa el bloque bajo. Muestra organización defensiva en área.'
+                'pressing_alto': {
+                    'descripcion': 'PRESSING ALTO del rival (en nuestro campo)',
+                    'zona_x': '60-90',
+                    'explicacion': 'El RIVAL presiona ALTO. Sus delanteros presionan en X=70-85, línea de pressing en X=65-75.'
+                },
+                'bloque_medio': {
+                    'descripcion': 'BLOQUE MEDIO del rival (centro del campo)',
+                    'zona_x': '40-65',
+                    'explicacion': 'El RIVAL se compacta en MEDIO. Sus líneas entre X=45-60, bloque de 25-30m.'
+                },
+                'bloque_bajo': {
+                    'descripcion': 'BLOQUE BAJO del rival (en su área)',
+                    'zona_x': '70-95',
+                    'explicacion': 'El RIVAL defiende en su ÁREA. Defensas en X=78-88, líneas muy juntas.'
+                }
             },
             'transicion': {
-                'def_atq': 'Representa el contraataque rival. Muestra recuperación y carreras hacia portería.',
-                'atq_def': 'Representa la transición defensiva rival. Muestra repliegue y zonas de desbalance.'
+                'def_atq': {
+                    'descripcion': 'CONTRAATAQUE del rival (de su área hacia la nuestra)',
+                    'zona_x': '30-70',
+                    'explicacion': 'Transición OFENSIVA. Recuperación en X=50-65, carreras hacia X=10-30.'
+                },
+                'atq_def': {
+                    'descripcion': 'REPLIEGUE del rival (volviendo a defender)',
+                    'zona_x': '40-80',
+                    'explicacion': 'Transición DEFENSIVA. Equilibrios en X=60-75, zonas de desbalance a explotar.'
+                }
             },
             'abp': {
-                'corners': 'Representa estrategia de corners. Muestra posiciones de rematadores y ejecutor.',
-                'faltas': 'Representa estrategia de faltas. Muestra ejecutor y movimientos.'
+                'corners': {
+                    'descripcion': 'CORNER del rival (atacando nuestra portería)',
+                    'zona_x': '5-25',
+                    'explicacion': 'Corner OFENSIVO rival. Ejecutor en X=2-5, rematadores en X=8-18.'
+                },
+                'faltas': {
+                    'descripcion': 'FALTA del rival',
+                    'zona_x': '15-40',
+                    'explicacion': 'Falta OFENSIVA rival. Ejecutor y barrera/movimientos.'
+                }
             }
         }
 
-        contexto = contextos.get(fase, {}).get(tipo, 'Representa la situación táctica descrita.')
+        info_zona = zonas_campo.get(fase, {}).get(tipo, {
+            'descripcion': 'Situación táctica',
+            'zona_x': '20-80',
+            'explicacion': 'Dibuja según el texto.'
+        })
 
-        return f"""Eres un analista táctico visual de fútbol. Genera instrucciones de dibujo para un campo de fútbol.
+        return f"""Eres un analista táctico de fútbol. Genera SOLO los elementos que se mencionan en el texto.
 
-CONTEXTO: {contexto}
+══════════════════════════════════════════════════════════════
+SITUACIÓN: {info_zona['descripcion']}
+ZONA DEL CAMPO: X = {info_zona['zona_x']}
+{info_zona['explicacion']}
+══════════════════════════════════════════════════════════════
 
-INFORMACIÓN TÁCTICA DEL USUARIO:
+COORDENADAS DEL CAMPO (MUY IMPORTANTE):
+┌─────────────────────────────────────────────────────────────┐
+│  X=0-5: Nuestra portería (izquierda)                        │
+│  X=5-30: Nuestro campo defensivo                            │
+│  X=30-50: Nuestro mediocampo                                │
+│  X=50: Línea central                                        │
+│  X=50-70: Mediocampo rival                                  │
+│  X=70-95: Campo defensivo rival                             │
+│  X=95-100: Portería rival (derecha)                         │
+│  Y=0-100: De banda a banda (0=abajo, 50=centro, 100=arriba) │
+└─────────────────────────────────────────────────────────────┘
+
+TEXTO TÁCTICO A REPRESENTAR:
 {json.dumps(texto_tactico, indent=2, ensure_ascii=False)}
 
-El campo tiene coordenadas de 0 a 100 en X (izquierda a derecha) y 0 a 100 en Y (abajo a arriba).
-- Portería RIVAL está en X=95-100 (derecha)
-- Portería PROPIA está en X=0-5 (izquierda)
-- Centro del campo: X=50
+══════════════════════════════════════════════════════════════
+REGLAS ESTRICTAS:
+══════════════════════════════════════════════════════════════
+1. SOLO dibuja lo que SE MENCIONA en el texto. NO inventes.
+2. Si dice "estructura 4+1" → dibuja 4 defensas + 1 pivote
+3. Si menciona triángulos específicos (ej: "1-4-6") → conecta esos números con flechas
+4. Si menciona jugadores por NÚMERO (ej: "el 10", "el 9") → ponlos con ese número
+5. Si menciona ZONAS (ej: "bandas", "centro") → dibuja zona en esa área
+6. Las FLECHAS solo para pases/movimientos MENCIONADOS
+7. Posiciona a los jugadores en la ZONA CORRECTA del campo según la fase
 
-Genera un JSON con instrucciones de dibujo:
-- jugadores: Lista de jugadores a dibujar (máx 6-8)
-- flechas: Lista de flechas de movimiento/pase (máx 4-5)
-- zonas: Lista de zonas destacadas (máx 2)
+FORMACIONES TÍPICAS (Y en banda):
+- Portero: Y=50
+- Defensas (4): Y=20, Y=40, Y=60, Y=80
+- Centrocampistas (3): Y=25, Y=50, Y=75
+- Delanteros: Y=30, Y=50, Y=70
 
-DEVUELVE ÚNICAMENTE este JSON:
+══════════════════════════════════════════════════════════════
+
+DEVUELVE SOLO ESTE JSON (sin explicaciones):
 {{
     "jugadores": [
-        {{"x": 85, "y": 50, "numero": "1", "color": "amarillo", "destacado": true}},
-        {{"x": 75, "y": 35, "numero": "4", "color": "rojo", "destacado": false}},
-        {{"x": 75, "y": 65, "numero": "5", "color": "rojo", "destacado": false}}
+        {{"x": 85, "y": 50, "numero": "1", "color": "amarillo", "destacado": false}}
     ],
     "flechas": [
-        {{"x1": 85, "y1": 50, "x2": 75, "y2": 40, "color": "blanco", "tipo": "pase"}},
-        {{"x1": 70, "y1": 50, "x2": 50, "y2": 50, "color": "amarillo", "tipo": "movimiento"}}
+        {{"x1": 85, "y1": 50, "x2": 75, "y2": 40, "color": "blanco", "tipo": "pase"}}
     ],
     "zonas": [
-        {{"x": 65, "y": 25, "ancho": 20, "alto": 50, "color": "verde", "nombre": "Zona salida"}}
+        {{"x": 65, "y": 25, "ancho": 15, "alto": 50, "color": "verde", "nombre": "Zona"}}
     ],
     "linea_tactica": {{
-        "activa": true,
-        "x": 70,
+        "activa": false,
+        "x": 50,
         "color": "rojo",
-        "etiqueta": "Línea pressing"
+        "etiqueta": ""
     }}
 }}
 
-COLORES PERMITIDOS: rojo, azul, amarillo, verde, naranja, blanco, morado
-TIPOS DE FLECHA: pase, movimiento, carrera, pressing
-
-Sé creativo y representa visualmente lo que describe el texto táctico. Los jugadores destacados (destacado=true) se dibujan más grandes y en amarillo."""
+COLORES: rojo, azul, amarillo, verde, naranja, blanco, morado
+- Jugadores DESTACADOS o clave: amarillo con destacado=true
+- Jugadores normales: rojo con destacado=false
+- Flechas de pase: blanco
+- Flechas de movimiento/carrera: amarillo o verde"""
 
     def _analizar_groq_dibujo(self, prompt):
-        """Analiza usando Groq para generar dibujos"""
+        """Analiza usando Groq para generar dibujos - VERSIÓN PRECISA"""
         if not self.groq_key:
             raise ValueError("API Key de Groq no configurada")
 
@@ -467,14 +536,22 @@ Sé creativo y representa visualmente lo que describe el texto táctico. Los jug
                 messages=[
                     {
                         "role": "system",
-                        "content": "Eres un generador de instrucciones de dibujo táctico de fútbol. Respondes SIEMPRE en JSON válido con coordenadas precisas."
+                        "content": """Eres un analista táctico de fútbol que genera dibujos PRECISOS.
+
+REGLAS CRÍTICAS:
+1. SOLO dibuja elementos MENCIONADOS en el texto del usuario
+2. NO inventes jugadores, flechas o zonas que no estén en el texto
+3. Respeta SIEMPRE las coordenadas X indicadas para cada fase
+4. Devuelve ÚNICAMENTE JSON válido, sin explicaciones
+5. Si el texto menciona números de jugadores específicos (ej: "el 10"), usa ESE número
+6. Si menciona una estructura (ej: "4+1"), dibuja EXACTAMENTE esos jugadores"""
                     },
                     {
                         "role": "user",
                         "content": prompt
                     }
                 ],
-                temperature=0.5,
+                temperature=0.2,  # Más bajo = más preciso, menos inventivo
                 max_tokens=1500
             )
 
