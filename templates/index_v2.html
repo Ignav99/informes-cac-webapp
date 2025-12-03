@@ -723,6 +723,13 @@
                 <div class="form-section active" data-section="0">
                     <h2 class="section-title">📋 Información Básica</h2>
 
+                    <div style="margin-bottom: 20px; padding: 15px; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px;">
+                        <button type="button" class="btn" onclick="autorrellenarEjemplo()"
+                                style="background: #F59E0B; color: white; width: 100%;">
+                            🧪 Autorrellenar con Datos de Ejemplo (para test rápido)
+                        </button>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre del Rival *</label>
@@ -1892,6 +1899,107 @@ Ejemplo:
                 console.error('Error:', error);
                 window.location.href = '/';
             }
+        }
+
+        // Autorrellenar con datos de ejemplo para test rápido
+        function autorrellenarEjemplo() {
+            // Info básica
+            document.getElementById('nombre_rival').value = 'FC Barcelona B';
+            document.getElementById('jornada').value = '15';
+            document.getElementById('sistema').value = '4-3-3';
+            document.getElementById('posicion').value = '2';
+            document.getElementById('racha').value = 'VVDEV';
+            document.getElementById('goles_favor').value = '28';
+            document.getElementById('goles_contra').value = '12';
+
+            // Ataque - VS Bloque Alto
+            document.getElementById('atq_alto_estructura').value = '4+1 (Portero + 4 defensas + pivote)';
+            document.getElementById('atq_alto_triangulos').value = '1-4-6 (Portero-DC-Pivote)';
+            document.getElementById('atq_alto_patrones').value = 'Pase corto entre centrales\nSalida por bandas cuando presionan\nBuscan al pivote de espaldas';
+            document.getElementById('atq_alto_debilidad').value = 'Poca velocidad en salida, presión alta les genera errores';
+            document.getElementById('atq_alto_fortaleza').value = 'Buena técnica individual del portero';
+
+            // Ataque - VS Bloque Medio
+            document.getElementById('atq_medio_jugadores').value = '10 y 8 (centrocampistas creativos)';
+            document.getElementById('atq_medio_zonas').value = 'Bandas con carrileros que desbordan';
+            document.getElementById('atq_medio_patrones').value = 'Cambios de orientación constantes\nJuego interior buscando al 10\nDesmarques de ruptura del 9';
+            document.getElementById('atq_medio_debilidad').value = 'Dependen mucho del 10, sin él pierden creatividad';
+            document.getElementById('atq_medio_fortaleza').value = 'Circulación rápida y precisa';
+
+            // Ataque - VS Bloque Bajo
+            document.getElementById('atq_bajo_finalizan').value = 'Centros laterales al área';
+            document.getElementById('atq_bajo_jugadores').value = '9 y 7 atacan primer palo, 11 segundo palo';
+            document.getElementById('atq_bajo_patrones').value = 'Centros al primer palo\nRemates de segunda jugada';
+            document.getElementById('atq_bajo_debilidad').value = 'Poco juego aéreo, los centrales no suben';
+            document.getElementById('atq_bajo_fortaleza').value = 'Buenos tiradores desde fuera del área';
+
+            // Defensa - Pressing Alto
+            document.getElementById('def_pressing_estructura').value = '4-4-2 en presión';
+            document.getElementById('def_pressing_gatillos').value = 'Pase al central derecho';
+            document.getElementById('def_pressing_patrones').value = 'Presión en banda dejando interior libre\nCierre de líneas de pase al pivote';
+            document.getElementById('def_pressing_debilidad').value = 'Espacios a la espalda de los laterales';
+            document.getElementById('def_pressing_fortaleza').value = 'Muy agresivos en recuperación alta';
+
+            // Defensa - Bloque Medio
+            document.getElementById('def_medio_compactacion').value = '25-30 metros entre líneas';
+            document.getElementById('def_medio_coberturas').value = 'Coberturas laterales buenas';
+            document.getElementById('def_medio_patrones').value = 'Compactos en centro del campo\nVigilancia de espacios entre líneas';
+            document.getElementById('def_medio_debilidad').value = 'Lentos en basculaciones largas';
+            document.getElementById('def_medio_fortaleza').value = 'Bien organizados en zona central';
+
+            // Defensa - Bloque Bajo
+            document.getElementById('def_bajo_organizacion').value = 'Dos líneas de 4 muy juntas';
+            document.getElementById('def_bajo_marcajes').value = 'Zona pura en área';
+            document.getElementById('def_bajo_patrones').value = 'Defensa en bloque\nSalidas rápidas tras rechace';
+            document.getElementById('def_bajo_debilidad').value = 'Dejan espacios entre centrales en balones al hueco';
+            document.getElementById('def_bajo_fortaleza').value = 'Buenos en duelos aéreos defensivos';
+
+            // Transiciones - DEF → ATQ
+            document.getElementById('trans_def_atq_velocidad').value = 'Muy rápida - Contraataques letales';
+            document.getElementById('trans_def_atq_jugadores').value = '10 organiza, 7 y 11 corren por fuera';
+            document.getElementById('trans_def_atq_patrones').value = 'Pase largo a bandas\nVerticalidad inmediata al recuperar';
+            document.getElementById('trans_def_atq_cortar').value = 'Falta táctica rápida apenas pierden balón';
+            document.getElementById('trans_def_atq_fortaleza').value = 'Velocidad extrema de los extremos';
+
+            // Transiciones - ATQ → DEF
+            document.getElementById('trans_atq_def_equilibrios').value = '2 centrales + pivote quedan atrás';
+            document.getElementById('trans_atq_def_repliegue').value = 'Repliegue ordenado pero lento';
+            document.getElementById('trans_atq_def_patrones').value = 'Presión al portador\nRetrasar líneas progresivamente';
+            document.getElementById('trans_atq_def_desbalance').value = 'Laterales muy adelantados, espacio a sus espaldas';
+            document.getElementById('trans_atq_def_fortaleza').value = 'El pivote cubre bien los espacios centrales';
+
+            // ABP
+            document.getElementById('abp_corners_favor').value = 'Zona con 4 rematadores. El 9 ataca primer palo, 4 y 5 van al segundo. Ejecuta el 10.';
+            document.getElementById('abp_faltas_favor').value = 'Ejecutor: 10. Directas peligrosas, buen disparo con rosca.';
+            document.getElementById('abp_corners_contra').value = 'Defensa mixta, el 9 rival marca al poste. Vulnerables en segundo palo.';
+            document.getElementById('abp_debilidad').value = 'Flojos en defensa de corners, se despistan en el segundo palo';
+            document.getElementById('abp_fortaleza').value = 'Muy peligrosos en estrategia ofensiva, ensayan muchas jugadas';
+
+            // Jugador 1
+            document.getElementById('jugador1_numero').value = '10';
+            document.getElementById('jugador1_nombre').value = 'García López';
+            document.getElementById('jugador1_posicion').value = 'MC';
+            document.getElementById('jugador1_nivel').value = 'peligroso';
+            document.getElementById('jugador1_caracteristicas').value = 'Organizador del juego, gran visión de pase. Ejecuta todas las faltas. Peligroso en disparos lejanos.';
+
+            // Jugador 2
+            document.getElementById('jugador2_numero').value = '9';
+            document.getElementById('jugador2_nombre').value = 'Martínez Ruiz';
+            document.getElementById('jugador2_posicion').value = 'DC';
+            document.getElementById('jugador2_nivel').value = 'peligroso';
+            document.getElementById('jugador2_caracteristicas').value = 'Goleador nato, muy fuerte en remate de cabeza. Busca siempre el primer palo en centros.';
+
+            // Jugador 3
+            document.getElementById('jugador3_numero').value = '7';
+            document.getElementById('jugador3_nombre').value = 'Sánchez Vega';
+            document.getElementById('jugador3_posicion').value = 'ED';
+            document.getElementById('jugador3_nivel').value = 'importante';
+            document.getElementById('jugador3_caracteristicas').value = 'Extremo muy rápido, buen 1vs1. Flojo en defensa pero letal en transiciones.';
+
+            // Actualizar resumen
+            updateResumen();
+
+            alert('✅ Formulario rellenado con datos de ejemplo. Puedes navegar por las secciones y generar el PDF para ver el resultado.');
         }
     </script>
 </body>
