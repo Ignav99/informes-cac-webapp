@@ -595,47 +595,65 @@ DEVUELVE ÚNICAMENTE ESTE JSON:
 
 ═══════════════════════════════════════════════════════════════
 FASE: PRESSING ALTO - Cómo el RIVAL nos presiona en salida
-ZONA DEL CAMPO: X = 60-90 (presionan en nuestro campo)
+ZONA DEL CAMPO: X = 55-90 (presionan en nuestro campo)
+IMPORTANTE: DIBUJAR LOS 11 JUGADORES COMPLETOS
 ═══════════════════════════════════════════════════════════════
 
 DATOS DEL USUARIO:
 {json.dumps(texto, indent=2, ensure_ascii=False)}
 
-INSTRUCCIONES DE DIBUJO:
+INSTRUCCIONES DE DIBUJO - OBLIGATORIO DIBUJAR LOS 11:
 
-1. LÍNEA DE PRESSING:
-   - SIEMPRE dibuja linea_tactica activa=true
-   - Si presión alta: X=70-75, color ROJO, etiqueta "Pressing"
-   - Línea vertical que marca hasta dónde presionan
+1. PORTERO (1 jugador):
+   - Portero: X=95, Y=50, numero="1", color="rojo"
 
-2. ESTRUCTURA DE PRESIÓN:
-   - Si menciona "4-4-2 en presión" → 2 delanteros en X=75, 4 medios en X=65
-   - Si menciona "4-3-3 en presión" → 3 delanteros en X=75
+2. LÍNEA DEFENSIVA (4 jugadores):
+   - Lateral derecho: X=75, Y=15, numero="2", color="rojo"
+   - Central derecho: X=75, Y=38, numero="4", color="rojo"
+   - Central izquierdo: X=75, Y=62, numero="5", color="rojo"
+   - Lateral izquierdo: X=75, Y=85, numero="3", color="rojo"
 
-3. GATILLOS (TRIGGERS):
-   - Si menciona gatillos específicos → marca con zona NARANJA
-   - "Pase al central" → zona naranja sobre el central
+3. LÍNEA DE MEDIOS (4 jugadores):
+   - Medio derecho: X=65, Y=18, numero="7", color="rojo"
+   - Medio centro-derecho: X=65, Y=40, numero="8", color="rojo"
+   - Medio centro-izquierdo: X=65, Y=60, numero="6", color="rojo"
+   - Medio izquierdo: X=65, Y=82, numero="11", color="rojo"
 
-4. FLECHAS DE PRESSING:
-   - Flechas ROJAS desde jugadores hacia donde presionan
-   - Tipo "pressing"
-   - Dirección: hacia nuestra portería (hacia X bajo)
+4. LÍNEA DE ATAQUE/PRESSING (2 jugadores - los que presionan):
+   - Delantero derecho: X=55, Y=40, numero="10", color="amarillo", destacado=true
+   - Delantero izquierdo: X=55, Y=60, numero="9", color="amarillo", destacado=true
 
-5. ESPACIOS A LA ESPALDA:
-   - Si menciona debilidad en espacios → zona VERDE detrás de la línea de pressing
-   - Representa la zona a explotar
+5. LÍNEA DE PRESSING:
+   - SIEMPRE linea_tactica activa=true
+   - X=58, color ROJO, etiqueta "Pressing"
 
-POSICIONES PRESSING ALTO:
-- Delanteros presionando: X=75, Y=35 y Y=65
-- Mediocentros presionando: X=65, Y=25, Y=50, Y=75
-- Línea defensiva: X=55, Y=20, Y=40, Y=60, Y=80
+6. FLECHAS DE PRESSING:
+   - Flechas ROJAS desde los 2 delanteros hacia donde presionan (hacia X=45-50)
 
-DEVUELVE ÚNICAMENTE ESTE JSON:
+7. ZONA DE ESPACIO (si menciona debilidad):
+   - Zona VERDE detrás de la línea defensiva (X=78-90)
+
+DEVUELVE ÚNICAMENTE ESTE JSON CON LOS 11 JUGADORES:
 {{
-    "jugadores": [{{"x": 75, "y": 50, "numero": "9", "color": "rojo", "destacado": false}}],
-    "flechas": [{{"x1": 75, "y1": 50, "x2": 85, "y2": 50, "color": "rojo", "tipo": "pressing"}}],
-    "zonas": [{{"x": 50, "y": 20, "ancho": 15, "alto": 60, "color": "verde", "nombre": "Espacio"}}],
-    "linea_tactica": {{"activa": true, "x": 70, "color": "rojo", "etiqueta": "Pressing"}}
+    "jugadores": [
+        {{"x": 95, "y": 50, "numero": "1", "color": "rojo", "destacado": false}},
+        {{"x": 75, "y": 15, "numero": "2", "color": "rojo", "destacado": false}},
+        {{"x": 75, "y": 38, "numero": "4", "color": "rojo", "destacado": false}},
+        {{"x": 75, "y": 62, "numero": "5", "color": "rojo", "destacado": false}},
+        {{"x": 75, "y": 85, "numero": "3", "color": "rojo", "destacado": false}},
+        {{"x": 65, "y": 18, "numero": "7", "color": "rojo", "destacado": false}},
+        {{"x": 65, "y": 40, "numero": "8", "color": "rojo", "destacado": false}},
+        {{"x": 65, "y": 60, "numero": "6", "color": "rojo", "destacado": false}},
+        {{"x": 65, "y": 82, "numero": "11", "color": "rojo", "destacado": false}},
+        {{"x": 55, "y": 40, "numero": "10", "color": "amarillo", "destacado": true}},
+        {{"x": 55, "y": 60, "numero": "9", "color": "amarillo", "destacado": true}}
+    ],
+    "flechas": [
+        {{"x1": 55, "y1": 40, "x2": 45, "y2": 38, "color": "rojo", "tipo": "pressing"}},
+        {{"x1": 55, "y1": 60, "x2": 45, "y2": 62, "color": "rojo", "tipo": "pressing"}}
+    ],
+    "zonas": [{{"x": 78, "y": 20, "ancho": 15, "alto": 60, "color": "verde", "nombre": "Espacio"}}],
+    "linea_tactica": {{"activa": true, "x": 58, "color": "rojo", "etiqueta": "Pressing"}}
 }}"""
 
     def _prompt_defensa_bloque_medio(self, texto):
@@ -644,39 +662,66 @@ DEVUELVE ÚNICAMENTE ESTE JSON:
 
 ═══════════════════════════════════════════════════════════════
 FASE: BLOQUE MEDIO - Cómo el RIVAL defiende en zona media
-ZONA DEL CAMPO: X = 40-65 (centro del campo)
+ZONA DEL CAMPO: X = 40-70 (centro del campo)
+IMPORTANTE: DIBUJAR LOS 11 JUGADORES COMPLETOS
 ═══════════════════════════════════════════════════════════════
 
 DATOS DEL USUARIO:
 {json.dumps(texto, indent=2, ensure_ascii=False)}
 
-INSTRUCCIONES DE DIBUJO:
+INSTRUCCIONES DE DIBUJO - OBLIGATORIO DIBUJAR LOS 11:
 
-1. COMPACTACIÓN:
-   - Si menciona "25-30 metros" → dibuja DOS líneas de jugadores compactas
-   - Línea defensiva: X=55
-   - Línea de medios: X=48
-   - Dibuja linea_tactica en X=50, color NARANJA, etiqueta "Bloque"
+1. PORTERO (1 jugador):
+   - Portero: X=95, Y=50, numero="1", color="rojo"
 
-2. ESTRUCTURA DEFENSIVA:
-   - 4 defensas en línea: X=55, Y=20, Y=40, Y=60, Y=80
-   - 4 centrocampistas: X=48, Y=20, Y=40, Y=60, Y=80
-   - Todos en ROJO, destacado=false
+2. LÍNEA DEFENSIVA (4 jugadores) - COMPACTA:
+   - Lateral derecho: X=62, Y=15, numero="2", color="rojo"
+   - Central derecho: X=62, Y=38, numero="4", color="rojo"
+   - Central izquierdo: X=62, Y=62, numero="5", color="rojo"
+   - Lateral izquierdo: X=62, Y=85, numero="3", color="rojo"
 
-3. COBERTURAS:
-   - Si menciona "coberturas laterales" → flechas de ayuda entre jugadores
-   - Flechas BLANCAS cortas entre defensas
+3. LÍNEA DE MEDIOS (4 jugadores) - COMPACTA cerca de defensa:
+   - Medio derecho: X=52, Y=18, numero="7", color="rojo"
+   - Medio centro-derecho: X=52, Y=40, numero="8", color="rojo"
+   - Medio centro-izquierdo: X=52, Y=60, numero="6", color="rojo"
+   - Medio izquierdo: X=52, Y=82, numero="11", color="rojo"
 
-4. ZONAS DE PELIGRO:
-   - "Entre líneas" → zona VERDE en X=48-55, Y=30-70
-   - Donde podemos atacar
+4. LÍNEA DE ATAQUE (2 jugadores) - Esperando contraataque:
+   - Delantero derecho: X=40, Y=40, numero="10", color="amarillo", destacado=true
+   - Delantero izquierdo: X=40, Y=60, numero="9", color="amarillo", destacado=true
 
-DEVUELVE ÚNICAMENTE ESTE JSON:
+5. LÍNEA TÁCTICA:
+   - linea_tactica activa=true
+   - X=57, color NARANJA, etiqueta "Bloque medio"
+   - Representa la zona compacta del bloque
+
+6. COBERTURAS (si menciona):
+   - Flechas BLANCAS cortas entre defensas y medios (basculaciones)
+
+7. ZONA ENTRE LÍNEAS (para explotar):
+   - Zona VERDE entre defensa y medios: X=55-60, Y=25-75
+
+DEVUELVE ÚNICAMENTE ESTE JSON CON LOS 11 JUGADORES:
 {{
-    "jugadores": [{{"x": 55, "y": 40, "numero": "4", "color": "rojo", "destacado": false}}],
-    "flechas": [{{"x1": 55, "y1": 40, "x2": 55, "y2": 60, "color": "blanco", "tipo": "pase"}}],
-    "zonas": [{{"x": 48, "y": 30, "ancho": 10, "alto": 40, "color": "verde", "nombre": "Entre líneas"}}],
-    "linea_tactica": {{"activa": true, "x": 52, "color": "naranja", "etiqueta": "Bloque medio"}}
+    "jugadores": [
+        {{"x": 95, "y": 50, "numero": "1", "color": "rojo", "destacado": false}},
+        {{"x": 62, "y": 15, "numero": "2", "color": "rojo", "destacado": false}},
+        {{"x": 62, "y": 38, "numero": "4", "color": "rojo", "destacado": false}},
+        {{"x": 62, "y": 62, "numero": "5", "color": "rojo", "destacado": false}},
+        {{"x": 62, "y": 85, "numero": "3", "color": "rojo", "destacado": false}},
+        {{"x": 52, "y": 18, "numero": "7", "color": "rojo", "destacado": false}},
+        {{"x": 52, "y": 40, "numero": "8", "color": "rojo", "destacado": false}},
+        {{"x": 52, "y": 60, "numero": "6", "color": "rojo", "destacado": false}},
+        {{"x": 52, "y": 82, "numero": "11", "color": "rojo", "destacado": false}},
+        {{"x": 40, "y": 40, "numero": "10", "color": "amarillo", "destacado": true}},
+        {{"x": 40, "y": 60, "numero": "9", "color": "amarillo", "destacado": true}}
+    ],
+    "flechas": [
+        {{"x1": 52, "y1": 40, "x2": 52, "y2": 60, "color": "blanco", "tipo": "cobertura"}},
+        {{"x1": 62, "y1": 38, "x2": 62, "y2": 62, "color": "blanco", "tipo": "cobertura"}}
+    ],
+    "zonas": [{{"x": 55, "y": 25, "ancho": 8, "alto": 50, "color": "verde", "nombre": "Entre líneas"}}],
+    "linea_tactica": {{"activa": true, "x": 57, "color": "naranja", "etiqueta": "Bloque medio"}}
 }}"""
 
     def _prompt_defensa_bloque_bajo(self, texto):
@@ -685,43 +730,63 @@ DEVUELVE ÚNICAMENTE ESTE JSON:
 
 ═══════════════════════════════════════════════════════════════
 FASE: BLOQUE BAJO - Cómo el RIVAL defiende en su área
-ZONA DEL CAMPO: X = 70-95 (campo del rival, su área)
+ZONA DEL CAMPO: X = 65-95 (campo del rival, su área)
+IMPORTANTE: DIBUJAR LOS 11 JUGADORES COMPLETOS
 ═══════════════════════════════════════════════════════════════
 
 DATOS DEL USUARIO:
 {json.dumps(texto, indent=2, ensure_ascii=False)}
 
-INSTRUCCIONES DE DIBUJO:
+INSTRUCCIONES DE DIBUJO - OBLIGATORIO DIBUJAR LOS 11:
 
-1. LÍNEAS MUY JUNTAS:
-   - Línea defensiva: X=82, 4 jugadores
-   - Línea de medios: X=75, 4 jugadores
-   - Distancia entre líneas: solo 7-10 unidades
-   - Dibuja linea_tactica en X=78, color AZUL, etiqueta "Bloque bajo"
+1. PORTERO (1 jugador):
+   - Portero: X=95, Y=50, numero="1", color="rojo"
 
-2. ORGANIZACIÓN EN ÁREA:
-   - Si menciona "zona pura" → todos los defensas en ROJO
-   - Si menciona "marcaje" → dibuja líneas conectando defensas con atacantes
+2. LÍNEA DEFENSIVA (4 jugadores) - MUY ATRÁS cerca de área:
+   - Lateral derecho: X=85, Y=20, numero="2", color="rojo"
+   - Central derecho: X=87, Y=40, numero="4", color="rojo"
+   - Central izquierdo: X=87, Y=60, numero="5", color="rojo"
+   - Lateral izquierdo: X=85, Y=80, numero="3", color="rojo"
 
-3. MARCAJES:
-   - Si menciona tipos de marcaje → representa con flechas cortas
+3. LÍNEA DE MEDIOS (4 jugadores) - MUY CERCA de la defensa (7-10 unidades):
+   - Medio derecho: X=78, Y=22, numero="7", color="rojo"
+   - Medio centro-derecho: X=78, Y=40, numero="8", color="rojo"
+   - Medio centro-izquierdo: X=78, Y=60, numero="6", color="rojo"
+   - Medio izquierdo: X=78, Y=78, numero="11", color="rojo"
 
-4. ESPACIOS A EXPLOTAR:
-   - Si menciona debilidad "entre centrales" → zona VERDE en X=80-90, Y=40-60
-   - "Segundos palos" → zona VERDE en Y=70-90
+4. LÍNEA DE ATAQUE (2 jugadores) - Referencias para contraataque:
+   - Delantero derecho: X=65, Y=40, numero="10", color="amarillo", destacado=true
+   - Delantero izquierdo: X=65, Y=60, numero="9", color="amarillo", destacado=true
 
-POSICIONES BLOQUE BAJO:
-- Portero: X=95, Y=50
-- Centrales: X=85, Y=40 y Y=60
-- Laterales: X=82, Y=20 y Y=80
-- Mediocentros: X=75, Y=30, Y=50, Y=70
+5. LÍNEA TÁCTICA:
+   - linea_tactica activa=true
+   - X=82, color AZUL, etiqueta "Bloque bajo"
+   - Representa el bloque compacto muy atrás
 
-DEVUELVE ÚNICAMENTE ESTE JSON:
+6. ZONA ENTRE CENTRALES (si menciona debilidad):
+   - Zona VERDE en X=85-92, Y=42-58
+
+7. SEGUNDOS PALOS (si menciona debilidad):
+   - Zona VERDE en Y=75-90 o Y=10-25
+
+DEVUELVE ÚNICAMENTE ESTE JSON CON LOS 11 JUGADORES:
 {{
-    "jugadores": [{{"x": 85, "y": 50, "numero": "5", "color": "rojo", "destacado": false}}],
+    "jugadores": [
+        {{"x": 95, "y": 50, "numero": "1", "color": "rojo", "destacado": false}},
+        {{"x": 85, "y": 20, "numero": "2", "color": "rojo", "destacado": false}},
+        {{"x": 87, "y": 40, "numero": "4", "color": "rojo", "destacado": false}},
+        {{"x": 87, "y": 60, "numero": "5", "color": "rojo", "destacado": false}},
+        {{"x": 85, "y": 80, "numero": "3", "color": "rojo", "destacado": false}},
+        {{"x": 78, "y": 22, "numero": "7", "color": "rojo", "destacado": false}},
+        {{"x": 78, "y": 40, "numero": "8", "color": "rojo", "destacado": false}},
+        {{"x": 78, "y": 60, "numero": "6", "color": "rojo", "destacado": false}},
+        {{"x": 78, "y": 78, "numero": "11", "color": "rojo", "destacado": false}},
+        {{"x": 65, "y": 40, "numero": "10", "color": "amarillo", "destacado": true}},
+        {{"x": 65, "y": 60, "numero": "9", "color": "amarillo", "destacado": true}}
+    ],
     "flechas": [],
-    "zonas": [{{"x": 80, "y": 35, "ancho": 12, "alto": 30, "color": "verde", "nombre": "Hueco"}}],
-    "linea_tactica": {{"activa": true, "x": 78, "color": "azul", "etiqueta": "Bloque bajo"}}
+    "zonas": [{{"x": 85, "y": 42, "ancho": 8, "alto": 16, "color": "verde", "nombre": "Entre centrales"}}],
+    "linea_tactica": {{"activa": true, "x": 82, "color": "azul", "etiqueta": "Bloque bajo"}}
 }}"""
 
     def _prompt_transicion_contra(self, texto):
@@ -1032,45 +1097,72 @@ INSTRUCCIONES CRÍTICAS:
             'defensa': {
                 'pressing_alto': {
                     'jugadores': [
-                        {'x': 88, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 20, 'numero': '2', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 80, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                        # 11 jugadores completos - pressing alto
+                        {'x': 95, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 15, 'numero': '2', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 38, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 62, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 75, 'y': 85, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                        {'x': 65, 'y': 18, 'numero': '7', 'color': 'rojo', 'destacado': False},
+                        {'x': 65, 'y': 40, 'numero': '8', 'color': 'rojo', 'destacado': False},
+                        {'x': 65, 'y': 60, 'numero': '6', 'color': 'rojo', 'destacado': False},
+                        {'x': 65, 'y': 82, 'numero': '11', 'color': 'rojo', 'destacado': False},
+                        {'x': 55, 'y': 40, 'numero': '10', 'color': 'amarillo', 'destacado': True},
+                        {'x': 55, 'y': 60, 'numero': '9', 'color': 'amarillo', 'destacado': True},
                     ],
                     'flechas': [
-                        {'x1': 55, 'y1': 50, 'x2': 68, 'y2': 50, 'color': 'amarillo', 'tipo': 'pressing'},
-                        {'x1': 50, 'y1': 25, 'x2': 65, 'y2': 25, 'color': 'amarillo', 'tipo': 'pressing'},
-                        {'x1': 50, 'y1': 75, 'x2': 65, 'y2': 75, 'color': 'amarillo', 'tipo': 'pressing'},
+                        {'x1': 55, 'y1': 40, 'x2': 45, 'y2': 38, 'color': 'rojo', 'tipo': 'pressing'},
+                        {'x1': 55, 'y1': 60, 'x2': 45, 'y2': 62, 'color': 'rojo', 'tipo': 'pressing'},
                     ],
-                    'zonas': [],
-                    'linea_tactica': {'activa': True, 'x': 70, 'color': 'rojo', 'etiqueta': 'Pressing'}
+                    'zonas': [
+                        {'x': 78, 'y': 20, 'ancho': 15, 'alto': 60, 'color': 'verde', 'nombre': 'Espacio'}
+                    ],
+                    'linea_tactica': {'activa': True, 'x': 58, 'color': 'rojo', 'etiqueta': 'Pressing'}
                 },
                 'bloque_medio': {
                     'jugadores': [
-                        {'x': 88, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 20, 'numero': '2', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
-                        {'x': 75, 'y': 80, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                        # 11 jugadores completos - bloque medio compacto
+                        {'x': 95, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
+                        {'x': 62, 'y': 15, 'numero': '2', 'color': 'rojo', 'destacado': False},
+                        {'x': 62, 'y': 38, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 62, 'y': 62, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 62, 'y': 85, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                        {'x': 52, 'y': 18, 'numero': '7', 'color': 'rojo', 'destacado': False},
+                        {'x': 52, 'y': 40, 'numero': '8', 'color': 'rojo', 'destacado': False},
+                        {'x': 52, 'y': 60, 'numero': '6', 'color': 'rojo', 'destacado': False},
+                        {'x': 52, 'y': 82, 'numero': '11', 'color': 'rojo', 'destacado': False},
+                        {'x': 40, 'y': 40, 'numero': '10', 'color': 'amarillo', 'destacado': True},
+                        {'x': 40, 'y': 60, 'numero': '9', 'color': 'amarillo', 'destacado': True},
                     ],
-                    'flechas': [],
+                    'flechas': [
+                        {'x1': 52, 'y1': 40, 'x2': 52, 'y2': 60, 'color': 'blanco', 'tipo': 'cobertura'},
+                        {'x1': 62, 'y1': 38, 'x2': 62, 'y2': 62, 'color': 'blanco', 'tipo': 'cobertura'},
+                    ],
                     'zonas': [
-                        {'x': 45, 'y': 15, 'ancho': 15, 'alto': 70, 'color': 'naranja', 'nombre': 'Bloque'}
+                        {'x': 55, 'y': 25, 'ancho': 8, 'alto': 50, 'color': 'verde', 'nombre': 'Entre líneas'}
                     ],
-                    'linea_tactica': {'activa': True, 'x': 50, 'color': 'naranja', 'etiqueta': 'Línea media'}
+                    'linea_tactica': {'activa': True, 'x': 57, 'color': 'naranja', 'etiqueta': 'Bloque medio'}
                 },
                 'bloque_bajo': {
                     'jugadores': [
-                        {'x': 92, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
-                        {'x': 82, 'y': 20, 'numero': '2', 'color': 'rojo', 'destacado': False},
-                        {'x': 82, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
-                        {'x': 82, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
-                        {'x': 82, 'y': 80, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                        # 11 jugadores completos - bloque bajo muy junto
+                        {'x': 95, 'y': 50, 'numero': '1', 'color': 'rojo', 'destacado': False},
+                        {'x': 85, 'y': 20, 'numero': '2', 'color': 'rojo', 'destacado': False},
+                        {'x': 87, 'y': 40, 'numero': '4', 'color': 'rojo', 'destacado': False},
+                        {'x': 87, 'y': 60, 'numero': '5', 'color': 'rojo', 'destacado': False},
+                        {'x': 85, 'y': 80, 'numero': '3', 'color': 'rojo', 'destacado': False},
+                        {'x': 78, 'y': 22, 'numero': '7', 'color': 'rojo', 'destacado': False},
+                        {'x': 78, 'y': 40, 'numero': '8', 'color': 'rojo', 'destacado': False},
+                        {'x': 78, 'y': 60, 'numero': '6', 'color': 'rojo', 'destacado': False},
+                        {'x': 78, 'y': 78, 'numero': '11', 'color': 'rojo', 'destacado': False},
+                        {'x': 65, 'y': 40, 'numero': '10', 'color': 'amarillo', 'destacado': True},
+                        {'x': 65, 'y': 60, 'numero': '9', 'color': 'amarillo', 'destacado': True},
                     ],
                     'flechas': [],
-                    'zonas': [],
-                    'linea_tactica': {'activa': True, 'x': 30, 'color': 'azul', 'etiqueta': 'Bloque bajo'}
+                    'zonas': [
+                        {'x': 85, 'y': 42, 'ancho': 8, 'alto': 16, 'color': 'verde', 'nombre': 'Entre centrales'}
+                    ],
+                    'linea_tactica': {'activa': True, 'x': 82, 'color': 'azul', 'etiqueta': 'Bloque bajo'}
                 }
             },
             'transicion': {
