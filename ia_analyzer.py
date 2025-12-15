@@ -424,142 +424,455 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
             }
 
     def _construir_prompt_dibujo(self, fase, tipo, texto_tactico):
-        """Construye prompt para generar instrucciones de dibujo táctico - VERSIÓN MEJORADA"""
+        """
+        Construye prompt PROFESIONAL para generar instrucciones de dibujo táctico.
+        Cada fase tiene instrucciones ultra-específicas.
+        """
 
-        # Zonas específicas del campo según la fase
-        zonas_campo = {
+        # Prompts específicos por fase y tipo
+        prompts_especificos = {
             'ataque': {
-                'vs_bloque_alto': {
-                    'descripcion': 'SALIDA DE BALÓN del rival (su campo, cerca de su portería)',
-                    'zona_x': '70-95',  # Lado derecho = su portería
-                    'explicacion': 'El RIVAL sale desde ATRÁS. Portero en X=92, defensas en X=75-82, pivote en X=65-70.'
-                },
-                'vs_bloque_medio': {
-                    'descripcion': 'PROGRESIÓN del rival (zona media del campo)',
-                    'zona_x': '40-70',
-                    'explicacion': 'El RIVAL progresa por CENTRO. Centrocampistas en X=45-60, extremos en X=35-50.'
-                },
-                'vs_bloque_bajo': {
-                    'descripcion': 'FINALIZACIÓN del rival (cerca de nuestra portería)',
-                    'zona_x': '5-35',  # Lado izquierdo = nuestra portería
-                    'explicacion': 'El RIVAL ataca NUESTRA ÁREA. Delanteros en X=10-25, centros desde X=5-15.'
-                }
+                'vs_bloque_alto': self._prompt_ataque_bloque_alto(texto_tactico),
+                'vs_bloque_medio': self._prompt_ataque_bloque_medio(texto_tactico),
+                'vs_bloque_bajo': self._prompt_ataque_bloque_bajo(texto_tactico),
             },
             'defensa': {
-                'pressing_alto': {
-                    'descripcion': 'PRESSING ALTO del rival (en nuestro campo)',
-                    'zona_x': '60-90',
-                    'explicacion': 'El RIVAL presiona ALTO. Sus delanteros presionan en X=70-85, línea de pressing en X=65-75.'
-                },
-                'bloque_medio': {
-                    'descripcion': 'BLOQUE MEDIO del rival (centro del campo)',
-                    'zona_x': '40-65',
-                    'explicacion': 'El RIVAL se compacta en MEDIO. Sus líneas entre X=45-60, bloque de 25-30m.'
-                },
-                'bloque_bajo': {
-                    'descripcion': 'BLOQUE BAJO del rival (en su área)',
-                    'zona_x': '70-95',
-                    'explicacion': 'El RIVAL defiende en su ÁREA. Defensas en X=78-88, líneas muy juntas.'
-                }
+                'pressing_alto': self._prompt_defensa_pressing(texto_tactico),
+                'bloque_medio': self._prompt_defensa_bloque_medio(texto_tactico),
+                'bloque_bajo': self._prompt_defensa_bloque_bajo(texto_tactico),
             },
             'transicion': {
-                'def_atq': {
-                    'descripcion': 'CONTRAATAQUE del rival (de su área hacia la nuestra)',
-                    'zona_x': '30-70',
-                    'explicacion': 'Transición OFENSIVA. Recuperación en X=50-65, carreras hacia X=10-30.'
-                },
-                'atq_def': {
-                    'descripcion': 'REPLIEGUE del rival (volviendo a defender)',
-                    'zona_x': '40-80',
-                    'explicacion': 'Transición DEFENSIVA. Equilibrios en X=60-75, zonas de desbalance a explotar.'
-                }
+                'def_atq': self._prompt_transicion_contra(texto_tactico),
+                'atq_def': self._prompt_transicion_repliegue(texto_tactico),
             },
             'abp': {
-                'corners': {
-                    'descripcion': 'CORNER del rival (atacando nuestra portería)',
-                    'zona_x': '5-25',
-                    'explicacion': 'Corner OFENSIVO rival. Ejecutor en X=2-5, rematadores en X=8-18.'
-                },
-                'faltas': {
-                    'descripcion': 'FALTA del rival',
-                    'zona_x': '15-40',
-                    'explicacion': 'Falta OFENSIVA rival. Ejecutor y barrera/movimientos.'
-                }
+                'corners': self._prompt_abp_corners(texto_tactico),
+                'faltas': self._prompt_abp_corners(texto_tactico),
             }
         }
 
-        info_zona = zonas_campo.get(fase, {}).get(tipo, {
-            'descripcion': 'Situación táctica',
-            'zona_x': '20-80',
-            'explicacion': 'Dibuja según el texto.'
-        })
+        return prompts_especificos.get(fase, {}).get(tipo, self._prompt_generico(texto_tactico))
 
-        return f"""Eres un analista táctico de fútbol. Genera SOLO los elementos que se mencionan en el texto.
+    def _prompt_ataque_bloque_alto(self, texto):
+        """Prompt para SALIDA DE BALÓN del rival (fase de creación)"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - SALIDA DE BALÓN RIVAL
 
-══════════════════════════════════════════════════════════════
-SITUACIÓN: {info_zona['descripcion']}
-ZONA DEL CAMPO: X = {info_zona['zona_x']}
-{info_zona['explicacion']}
-══════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
+FASE: CREACIÓN - Cómo sale el RIVAL jugando desde atrás
+ZONA DEL CAMPO: X = 65-95 (campo del rival, cerca de su portería)
+═══════════════════════════════════════════════════════════════
 
-COORDENADAS DEL CAMPO (MUY IMPORTANTE):
-┌─────────────────────────────────────────────────────────────┐
-│  X=0-5: Nuestra portería (izquierda)                        │
-│  X=5-30: Nuestro campo defensivo                            │
-│  X=30-50: Nuestro mediocampo                                │
-│  X=50: Línea central                                        │
-│  X=50-70: Mediocampo rival                                  │
-│  X=70-95: Campo defensivo rival                             │
-│  X=95-100: Portería rival (derecha)                         │
-│  Y=0-100: De banda a banda (0=abajo, 50=centro, 100=arriba) │
-└─────────────────────────────────────────────────────────────┘
+DATOS DEL USUARIO SOBRE ESTA FASE:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
 
-TEXTO TÁCTICO A REPRESENTAR:
-{json.dumps(texto_tactico, indent=2, ensure_ascii=False)}
+INSTRUCCIONES DE DIBUJO:
 
-══════════════════════════════════════════════════════════════
-REGLAS ESTRICTAS:
-══════════════════════════════════════════════════════════════
-1. SOLO dibuja lo que SE MENCIONA en el texto. NO inventes.
-2. Si dice "estructura 4+1" → dibuja 4 defensas + 1 pivote
-3. Si menciona triángulos específicos (ej: "1-4-6") → conecta esos números con flechas
-4. Si menciona jugadores por NÚMERO (ej: "el 10", "el 9") → ponlos con ese número
-5. Si menciona ZONAS (ej: "bandas", "centro") → dibuja zona en esa área
-6. Las FLECHAS solo para pases/movimientos MENCIONADOS
-7. Posiciona a los jugadores en la ZONA CORRECTA del campo según la fase
+1. ESTRUCTURA DE SALIDA:
+   - Si menciona "4+1" o "5 jugadores": Portero (X=92, Y=50) + 4 defensas + pivote
+   - Si menciona "3+2": 3 centrales + 2 pivotes
+   - Posiciona según el ESQUEMA mencionado
 
-FORMACIONES TÍPICAS (Y en banda):
-- Portero: Y=50
-- Defensas (4): Y=20, Y=40, Y=60, Y=80
-- Centrocampistas (3): Y=25, Y=50, Y=75
-- Delanteros: Y=30, Y=50, Y=70
+2. TRIÁNGULOS DE PASE:
+   - Si menciona triángulos (ej: "1-4-6"): Dibuja flechas BLANCAS conectando esos dorsales
+   - Representa las líneas de pase con flechas tipo "pase"
 
-══════════════════════════════════════════════════════════════
+3. JUGADORES CLAVE:
+   - Jugadores MENCIONADOS por número → color AMARILLO, destacado=true
+   - Resto de la estructura → color ROJO, destacado=false
 
-DEVUELVE SOLO ESTE JSON (sin explicaciones):
+4. ZONAS:
+   - Si menciona "salida por bandas" → zona VERDE en X=70-85, Y=10-30 o Y=70-90
+   - Si menciona "salida por centro" → zona VERDE en X=70-85, Y=35-65
+
+POSICIONES ESTÁNDAR SALIDA (si menciona estructura):
+- Portero: X=92, Y=50
+- Central derecho: X=80, Y=35
+- Central izquierdo: X=80, Y=65
+- Lateral derecho: X=78, Y=15
+- Lateral izquierdo: X=78, Y=85
+- Pivote: X=68, Y=50
+
+COORDENADAS: X=0 nuestra portería, X=100 portería rival. Y=0 banda inferior, Y=100 banda superior.
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
 {{
-    "jugadores": [
-        {{"x": 85, "y": 50, "numero": "1", "color": "amarillo", "destacado": false}}
-    ],
-    "flechas": [
-        {{"x1": 85, "y1": 50, "x2": 75, "y2": 40, "color": "blanco", "tipo": "pase"}}
-    ],
-    "zonas": [
-        {{"x": 65, "y": 25, "ancho": 15, "alto": 50, "color": "verde", "nombre": "Zona"}}
-    ],
-    "linea_tactica": {{
-        "activa": false,
-        "x": 50,
-        "color": "rojo",
-        "etiqueta": ""
-    }}
-}}
+    "jugadores": [{{"x": 92, "y": 50, "numero": "1", "color": "amarillo", "destacado": true}}],
+    "flechas": [{{"x1": 92, "y1": 50, "x2": 80, "y2": 40, "color": "blanco", "tipo": "pase"}}],
+    "zonas": [{{"x": 70, "y": 25, "ancho": 18, "alto": 50, "color": "verde", "nombre": "Salida"}}],
+    "linea_tactica": {{"activa": false, "x": 50, "color": "rojo", "etiqueta": ""}}
+}}"""
 
-COLORES: rojo, azul, amarillo, verde, naranja, blanco, morado
-- Jugadores DESTACADOS o clave: amarillo con destacado=true
-- Jugadores normales: rojo con destacado=false
-- Flechas de pase: blanco
-- Flechas de movimiento/carrera: amarillo o verde"""
+    def _prompt_ataque_bloque_medio(self, texto):
+        """Prompt para PROGRESIÓN del rival (fase de creación/progresión)"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - PROGRESIÓN RIVAL
+
+═══════════════════════════════════════════════════════════════
+FASE: PROGRESIÓN - Cómo el RIVAL avanza por zona media
+ZONA DEL CAMPO: X = 35-65 (centro del campo)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. JUGADORES CREATIVOS:
+   - Si menciona números (ej: "10 y 8") → dibújalos en AMARILLO destacado
+   - Posición: centrocampistas en X=45-55, Y según posición (interior/banda)
+
+2. ZONAS ACTIVAS:
+   - "Bandas" → zonas NARANJAS en Y=5-25 y/o Y=75-95
+   - "Centro" → zona NARANJA en Y=35-65
+   - "Entre líneas" → zona VERDE en X=40-55
+
+3. MOVIMIENTOS/PATRONES:
+   - "Cambios de orientación" → flecha AMARILLA de banda a banda
+   - "Juego interior" → flechas hacia el centro
+   - "Desmarques de ruptura" → flechas VERDES hacia portería (hacia X bajo)
+
+4. ESTRUCTURA EN PROGRESIÓN:
+   - Centrocampista creativo: X=50, Y=50 (si es mediapunta)
+   - Interiores: X=48, Y=30 y Y=70
+   - Extremos progresando: X=40, Y=15 y Y=85
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 50, "y": 50, "numero": "10", "color": "amarillo", "destacado": true}}],
+    "flechas": [{{"x1": 50, "y1": 50, "x2": 35, "y2": 50, "color": "amarillo", "tipo": "movimiento"}}],
+    "zonas": [{{"x": 38, "y": 20, "ancho": 20, "alto": 60, "color": "naranja", "nombre": "Creación"}}],
+    "linea_tactica": {{"activa": false, "x": 50, "color": "rojo", "etiqueta": ""}}
+}}"""
+
+    def _prompt_ataque_bloque_bajo(self, texto):
+        """Prompt para FINALIZACIÓN del rival"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - FINALIZACIÓN RIVAL
+
+═══════════════════════════════════════════════════════════════
+FASE: FINALIZACIÓN - Cómo el RIVAL ataca nuestra área
+ZONA DEL CAMPO: X = 5-30 (nuestro campo, cerca de nuestra portería)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. REMATADORES:
+   - Si menciona "9" o delantero centro → X=15, Y=50 en AMARILLO
+   - Si menciona "primer palo" → jugador en Y=35-45
+   - Si menciona "segundo palo" → jugador en Y=55-65
+   - Extremos rematando: X=18, Y=20 y Y=80
+
+2. CENTROS LATERALES:
+   - Si menciona "centros" → flechas desde X=8-12, Y=10 o Y=90 hacia el área
+   - Color AMARILLO, tipo "pase"
+
+3. ZONA DE REMATE:
+   - Dibuja zona ROJA en X=5-20, Y=25-75 (área de peligro)
+
+4. MOVIMIENTOS DE ATAQUE:
+   - "Atacan primer palo" → flecha hacia Y=40
+   - "Atacan segundo palo" → flecha hacia Y=60
+   - "Segunda jugada" → jugador en X=25 esperando rechace
+
+POSICIONES FINALIZACIÓN:
+- Delantero centro: X=15, Y=50
+- Extremo derecho rematando: X=18, Y=25
+- Extremo izquierdo rematando: X=18, Y=75
+- Mediapunta llegando: X=22, Y=50
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 15, "y": 50, "numero": "9", "color": "amarillo", "destacado": true}}],
+    "flechas": [{{"x1": 8, "y1": 90, "x2": 15, "y2": 55, "color": "amarillo", "tipo": "pase"}}],
+    "zonas": [{{"x": 5, "y": 25, "ancho": 18, "alto": 50, "color": "rojo", "nombre": "Peligro"}}],
+    "linea_tactica": {{"activa": false, "x": 50, "color": "rojo", "etiqueta": ""}}
+}}"""
+
+    def _prompt_defensa_pressing(self, texto):
+        """Prompt para PRESSING ALTO del rival"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - PRESSING ALTO RIVAL
+
+═══════════════════════════════════════════════════════════════
+FASE: PRESSING ALTO - Cómo el RIVAL nos presiona en salida
+ZONA DEL CAMPO: X = 60-90 (presionan en nuestro campo)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. LÍNEA DE PRESSING:
+   - SIEMPRE dibuja linea_tactica activa=true
+   - Si presión alta: X=70-75, color ROJO, etiqueta "Pressing"
+   - Línea vertical que marca hasta dónde presionan
+
+2. ESTRUCTURA DE PRESIÓN:
+   - Si menciona "4-4-2 en presión" → 2 delanteros en X=75, 4 medios en X=65
+   - Si menciona "4-3-3 en presión" → 3 delanteros en X=75
+
+3. GATILLOS (TRIGGERS):
+   - Si menciona gatillos específicos → marca con zona NARANJA
+   - "Pase al central" → zona naranja sobre el central
+
+4. FLECHAS DE PRESSING:
+   - Flechas ROJAS desde jugadores hacia donde presionan
+   - Tipo "pressing"
+   - Dirección: hacia nuestra portería (hacia X bajo)
+
+5. ESPACIOS A LA ESPALDA:
+   - Si menciona debilidad en espacios → zona VERDE detrás de la línea de pressing
+   - Representa la zona a explotar
+
+POSICIONES PRESSING ALTO:
+- Delanteros presionando: X=75, Y=35 y Y=65
+- Mediocentros presionando: X=65, Y=25, Y=50, Y=75
+- Línea defensiva: X=55, Y=20, Y=40, Y=60, Y=80
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 75, "y": 50, "numero": "9", "color": "rojo", "destacado": false}}],
+    "flechas": [{{"x1": 75, "y1": 50, "x2": 85, "y2": 50, "color": "rojo", "tipo": "pressing"}}],
+    "zonas": [{{"x": 50, "y": 20, "ancho": 15, "alto": 60, "color": "verde", "nombre": "Espacio"}}],
+    "linea_tactica": {{"activa": true, "x": 70, "color": "rojo", "etiqueta": "Pressing"}}
+}}"""
+
+    def _prompt_defensa_bloque_medio(self, texto):
+        """Prompt para BLOQUE MEDIO del rival"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - BLOQUE MEDIO RIVAL
+
+═══════════════════════════════════════════════════════════════
+FASE: BLOQUE MEDIO - Cómo el RIVAL defiende en zona media
+ZONA DEL CAMPO: X = 40-65 (centro del campo)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. COMPACTACIÓN:
+   - Si menciona "25-30 metros" → dibuja DOS líneas de jugadores compactas
+   - Línea defensiva: X=55
+   - Línea de medios: X=48
+   - Dibuja linea_tactica en X=50, color NARANJA, etiqueta "Bloque"
+
+2. ESTRUCTURA DEFENSIVA:
+   - 4 defensas en línea: X=55, Y=20, Y=40, Y=60, Y=80
+   - 4 centrocampistas: X=48, Y=20, Y=40, Y=60, Y=80
+   - Todos en ROJO, destacado=false
+
+3. COBERTURAS:
+   - Si menciona "coberturas laterales" → flechas de ayuda entre jugadores
+   - Flechas BLANCAS cortas entre defensas
+
+4. ZONAS DE PELIGRO:
+   - "Entre líneas" → zona VERDE en X=48-55, Y=30-70
+   - Donde podemos atacar
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 55, "y": 40, "numero": "4", "color": "rojo", "destacado": false}}],
+    "flechas": [{{"x1": 55, "y1": 40, "x2": 55, "y2": 60, "color": "blanco", "tipo": "pase"}}],
+    "zonas": [{{"x": 48, "y": 30, "ancho": 10, "alto": 40, "color": "verde", "nombre": "Entre líneas"}}],
+    "linea_tactica": {{"activa": true, "x": 52, "color": "naranja", "etiqueta": "Bloque medio"}}
+}}"""
+
+    def _prompt_defensa_bloque_bajo(self, texto):
+        """Prompt para BLOQUE BAJO del rival"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - BLOQUE BAJO RIVAL
+
+═══════════════════════════════════════════════════════════════
+FASE: BLOQUE BAJO - Cómo el RIVAL defiende en su área
+ZONA DEL CAMPO: X = 70-95 (campo del rival, su área)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. LÍNEAS MUY JUNTAS:
+   - Línea defensiva: X=82, 4 jugadores
+   - Línea de medios: X=75, 4 jugadores
+   - Distancia entre líneas: solo 7-10 unidades
+   - Dibuja linea_tactica en X=78, color AZUL, etiqueta "Bloque bajo"
+
+2. ORGANIZACIÓN EN ÁREA:
+   - Si menciona "zona pura" → todos los defensas en ROJO
+   - Si menciona "marcaje" → dibuja líneas conectando defensas con atacantes
+
+3. MARCAJES:
+   - Si menciona tipos de marcaje → representa con flechas cortas
+
+4. ESPACIOS A EXPLOTAR:
+   - Si menciona debilidad "entre centrales" → zona VERDE en X=80-90, Y=40-60
+   - "Segundos palos" → zona VERDE en Y=70-90
+
+POSICIONES BLOQUE BAJO:
+- Portero: X=95, Y=50
+- Centrales: X=85, Y=40 y Y=60
+- Laterales: X=82, Y=20 y Y=80
+- Mediocentros: X=75, Y=30, Y=50, Y=70
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 85, "y": 50, "numero": "5", "color": "rojo", "destacado": false}}],
+    "flechas": [],
+    "zonas": [{{"x": 80, "y": 35, "ancho": 12, "alto": 30, "color": "verde", "nombre": "Hueco"}}],
+    "linea_tactica": {{"activa": true, "x": 78, "color": "azul", "etiqueta": "Bloque bajo"}}
+}}"""
+
+    def _prompt_transicion_contra(self, texto):
+        """Prompt para CONTRAATAQUE del rival (DEF → ATQ)"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - CONTRAATAQUE RIVAL
+
+═══════════════════════════════════════════════════════════════
+FASE: TRANSICIÓN OFENSIVA - Contraataque del RIVAL
+ZONA DEL CAMPO: X = 30-70 (todo el campo en transición)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. VELOCIDAD DE TRANSICIÓN:
+   - Si "muy rápida" → flechas VERDES largas y directas hacia nuestra portería
+   - Si "progresiva" → flechas más cortas, escalonadas
+
+2. JUGADORES EN TRANSICIÓN:
+   - Si menciona números → dibújalos en AMARILLO
+   - "Extremos corren" → jugadores en Y=15 y Y=85 con flechas hacia X=10
+   - "10 organiza" → jugador en X=50, Y=50 con flechas de pase
+
+3. CARRERAS:
+   - Flechas VERDES tipo "carrera" desde zona de recuperación (X=55-65) hacia nuestra área (X=15-25)
+   - Carreras diagonales por bandas
+
+4. ZONA DE RECUPERACIÓN:
+   - Dibuja zona VERDE en X=50-65 donde recuperan
+
+5. CÓMO CORTAR:
+   - Si menciona "falta táctica" → zona ROJA donde hacer falta
+
+POSICIONES CONTRAATAQUE:
+- Jugador que recupera: X=55, Y=50
+- Extremo derecho corriendo: X=40→20, Y=20
+- Extremo izquierdo corriendo: X=40→20, Y=80
+- Delantero esperando: X=25, Y=50
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 55, "y": 50, "numero": "10", "color": "amarillo", "destacado": true}}],
+    "flechas": [{{"x1": 55, "y1": 50, "x2": 25, "y2": 50, "color": "verde", "tipo": "carrera"}}],
+    "zonas": [{{"x": 50, "y": 30, "ancho": 18, "alto": 40, "color": "verde", "nombre": "Recuperación"}}],
+    "linea_tactica": {{"activa": false, "x": 50, "color": "rojo", "etiqueta": ""}}
+}}"""
+
+    def _prompt_transicion_repliegue(self, texto):
+        """Prompt para REPLIEGUE del rival (ATQ → DEF)"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - REPLIEGUE RIVAL
+
+═══════════════════════════════════════════════════════════════
+FASE: TRANSICIÓN DEFENSIVA - Repliegue del RIVAL
+ZONA DEL CAMPO: X = 40-80 (volviendo a defender)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. EQUILIBRIOS:
+   - Si menciona "centrales + pivote" → 3 jugadores en X=70-75 quedándose
+   - Dibújalos en ROJO (son los que equilibran)
+
+2. REPLIEGUE:
+   - Si "ordenado" → flechas paralelas volviendo
+   - Si "lento" → marca zona de DESBALANCE
+
+3. ZONAS DE DESBALANCE (A EXPLOTAR):
+   - Si menciona "laterales adelantados" → zona VERDE en X=50-65, Y=10-30 o Y=70-90
+   - Son los espacios que podemos atacar cuando pierden balón
+
+4. FLECHAS DE REPLIEGUE:
+   - Flechas ROJAS tipo "movimiento" volviendo hacia su portería (hacia X alto)
+
+POSICIONES REPLIEGUE:
+- Pivote equilibrando: X=70, Y=50
+- Centrales: X=75, Y=40 y Y=60
+- Laterales volviendo: X=55→70, Y=20 y Y=80 (flechas)
+- Zona de desbalance: donde están los laterales fuera de posición
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 70, "y": 50, "numero": "6", "color": "rojo", "destacado": false}}],
+    "flechas": [{{"x1": 55, "y1": 20, "x2": 70, "y2": 25, "color": "rojo", "tipo": "movimiento"}}],
+    "zonas": [{{"x": 50, "y": 10, "ancho": 20, "alto": 25, "color": "verde", "nombre": "Desbalance"}}],
+    "linea_tactica": {{"activa": false, "x": 50, "color": "rojo", "etiqueta": ""}}
+}}"""
+
+    def _prompt_abp_corners(self, texto):
+        """Prompt para ABP - Corners y Faltas"""
+        return f"""ANALISTA TÁCTICO PROFESIONAL - ACCIONES A BALÓN PARADO
+
+═══════════════════════════════════════════════════════════════
+FASE: ABP - Corners y Faltas del RIVAL
+ZONA DEL CAMPO: X = 5-25 (nuestra área, donde atacan)
+═══════════════════════════════════════════════════════════════
+
+DATOS DEL USUARIO:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+INSTRUCCIONES DE DIBUJO:
+
+1. EJECUTOR:
+   - Corner: X=3, Y=95 (esquina superior) o Y=5 (esquina inferior)
+   - Falta: posición según distancia mencionada
+   - Color AMARILLO, destacado=true
+
+2. REMATADORES:
+   - Si menciona "primer palo" → jugador en X=12, Y=40
+   - Si menciona "segundo palo" → jugador en X=12, Y=65
+   - Si menciona dorsales → usa esos números
+
+3. TRAYECTORIA:
+   - Flecha AMARILLA desde ejecutor hacia zona de remate
+   - Tipo "pase"
+
+4. ZONA DE REMATE:
+   - Zona MORADA en X=8-18, Y=30-70
+
+5. DEFENSA DE CORNERS:
+   - Si menciona "defensa mixta" → algunos marcando, otros en zona
+   - Si menciona "vulnerable segundo palo" → zona VERDE ahí
+
+DEVUELVE ÚNICAMENTE ESTE JSON:
+{{
+    "jugadores": [{{"x": 3, "y": 95, "numero": "10", "color": "amarillo", "destacado": true}}],
+    "flechas": [{{"x1": 3, "y1": 95, "x2": 12, "y2": 55, "color": "amarillo", "tipo": "pase"}}],
+    "zonas": [{{"x": 8, "y": 30, "ancho": 12, "alto": 40, "color": "morado", "nombre": "Remate"}}],
+    "linea_tactica": {{"activa": false, "x": 50, "color": "rojo", "etiqueta": ""}}
+}}"""
+
+    def _prompt_generico(self, texto):
+        """Prompt genérico de fallback"""
+        return f"""ANALISTA TÁCTICO - Genera dibujo según el texto
+
+DATOS:
+{json.dumps(texto, indent=2, ensure_ascii=False)}
+
+COORDENADAS: X=0-100 (0=nuestra portería, 100=rival), Y=0-100 (bandas)
+
+DEVUELVE SOLO JSON:
+{{
+    "jugadores": [{{"x": 50, "y": 50, "numero": "10", "color": "amarillo", "destacado": true}}],
+    "flechas": [{{"x1": 50, "y1": 50, "x2": 30, "y2": 50, "color": "blanco", "tipo": "pase"}}],
+    "zonas": [{{"x": 40, "y": 30, "ancho": 20, "alto": 40, "color": "verde", "nombre": "Zona"}}],
+    "linea_tactica": {{"activa": false, "x": 50, "color": "rojo", "etiqueta": ""}}
+}}"""
 
     def _analizar_groq_dibujo(self, prompt):
         """Analiza usando Groq para generar dibujos - VERSIÓN PRECISA"""
