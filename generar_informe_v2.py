@@ -68,18 +68,55 @@ class CampoDinamico:
     """Dibuja campos de fútbol con instrucciones dinámicas de la IA"""
 
     @staticmethod
-    def crear_campo_base(width, height):
-        """Crea un campo de fútbol base con césped realista"""
+    def crear_campo_base(width, height, fase_tipo='ataque'):
+        """
+        Crea un campo de fútbol base con césped realista y zonas de tercios
+
+        Args:
+            width, height: Dimensiones
+            fase_tipo: 'ataque' o 'defensa' para etiquetas de zonas
+        """
         d = Drawing(width, height)
 
         # Césped con franjas
-        num_franjas = 8
+        num_franjas = 9  # Divisible por 3 para tercios
         franja_width = width / num_franjas
 
         for i in range(num_franjas):
             color = COLORES['campo_verde'] if i % 2 == 0 else COLORES['campo_verde_oscuro']
             d.add(Rect(i * franja_width, 0, franja_width, height,
                       fillColor=color, strokeColor=None))
+
+        # ZONAS DE TERCIOS - Siempre visibles
+        tercio_width = width / 3
+
+        # Líneas de tercios (punteadas, sutiles)
+        linea_tercio_color = colors.Color(1, 1, 1, alpha=0.4)
+        d.add(Line(tercio_width, 2, tercio_width, height - 2,
+                  strokeColor=linea_tercio_color, strokeWidth=1, strokeDashArray=[4, 4]))
+        d.add(Line(2 * tercio_width, 2, 2 * tercio_width, height - 2,
+                  strokeColor=linea_tercio_color, strokeWidth=1, strokeDashArray=[4, 4]))
+
+        # Etiquetas de zonas (arriba del campo)
+        # X=0 es nuestra portería (izq), X=100 es rival (der)
+        # Para ATAQUE: Creación (izq) -> Progresión (centro) -> Finalización (der)
+        # Para DEFENSA: Finalización (izq) -> Progresión (centro) -> Creación (der)
+        label_y = height - 8
+        label_font = 5
+        label_color = colors.Color(1, 1, 1, alpha=0.7)
+
+        if fase_tipo == 'ataque':
+            zonas = ['CREACIÓN', 'PROGRESIÓN', 'FINALIZACIÓN']
+        else:
+            zonas = ['FINALIZACIÓN', 'PROGRESIÓN', 'CREACIÓN']
+
+        for i, zona in enumerate(zonas):
+            x_center = (i * tercio_width) + (tercio_width / 2)
+            d.add(String(x_center, label_y, zona,
+                        fontSize=label_font,
+                        fontName='Helvetica',
+                        fillColor=label_color,
+                        textAnchor='middle'))
 
         # Borde del campo
         d.add(Rect(2, 2, width - 4, height - 4,
@@ -199,9 +236,16 @@ class CampoDinamico:
         return d
 
     @staticmethod
-    def crear_campo_con_instrucciones(width, height, instrucciones):
-        """Crea un campo completo con instrucciones de la IA"""
-        d = CampoDinamico.crear_campo_base(width, height)
+    def crear_campo_con_instrucciones(width, height, instrucciones, fase_tipo='ataque'):
+        """
+        Crea un campo completo con instrucciones de la IA
+
+        Args:
+            width, height: Dimensiones del campo
+            instrucciones: Dict con jugadores, flechas, zonas, linea_tactica
+            fase_tipo: 'ataque' o 'defensa' para etiquetas de tercios
+        """
+        d = CampoDinamico.crear_campo_base(width, height, fase_tipo)
         d = CampoDinamico.aplicar_instrucciones(d, instrucciones, width, height)
         return d
 
@@ -215,31 +259,32 @@ class CampoFormacion:
     # Posiciones estándar en el campo (X%, Y%) - campo horizontal
     # X: 0=portería propia, 100=portería rival
     # Y: 0=banda inferior, 100=banda superior
+    # Posiciones con buena separación Y para evitar superposición
     POSICIONES = {
         # Portero
-        'PT': (8, 50), 'POR': (8, 50), 'GK': (8, 50),
-        # Defensas
-        'DFC': (22, 50), 'CB': (22, 50),  # Central único
-        'DFCd': (22, 35), 'DFCi': (22, 65),  # Centrales en pareja
-        'LD': (22, 15), 'RB': (22, 15), 'LTD': (22, 15),  # Lateral derecho
-        'LI': (22, 85), 'LB': (22, 85), 'LTI': (22, 85),  # Lateral izquierdo
-        'CAD': (28, 20), 'RWB': (28, 20),  # Carrilero derecho
-        'CAI': (28, 80), 'LWB': (28, 80),  # Carrilero izquierdo
-        # Centrocampistas
-        'MCD': (40, 50), 'CDM': (40, 50), 'PIV': (40, 50),  # Pivote
+        'PT': (94, 50), 'POR': (94, 50), 'GK': (94, 50),
+        # Defensas - más separados en Y
+        'DFC': (80, 50), 'CB': (80, 50),  # Central único
+        'DFCd': (80, 32), 'DFCi': (80, 68),  # Centrales en pareja
+        'LD': (80, 8), 'RB': (80, 8), 'LTD': (80, 8),  # Lateral derecho
+        'LI': (80, 92), 'LB': (80, 92), 'LTI': (80, 92),  # Lateral izquierdo
+        'CAD': (72, 12), 'RWB': (72, 12),  # Carrilero derecho
+        'CAI': (72, 88), 'LWB': (72, 88),  # Carrilero izquierdo
+        # Centrocampistas - mejor distribución
+        'MCD': (62, 50), 'CDM': (62, 50), 'PIV': (62, 50),  # Pivote
         'MC': (50, 50), 'CM': (50, 50),  # Centrocampista
-        'MCd': (50, 35), 'MCi': (50, 65),  # MC derecho/izquierdo
-        'MCO': (55, 50), 'CAM': (55, 50), 'MP': (55, 50),  # Mediapunta
-        'MD': (45, 25), 'RM': (45, 25),  # Mediocentro derecho
-        'MI': (45, 75), 'LM': (45, 75),  # Mediocentro izquierdo
-        'INT': (50, 40),  # Interior
-        # Extremos
-        'ED': (65, 15), 'RW': (65, 15), 'EXD': (65, 15),  # Extremo derecho
-        'EI': (65, 85), 'LW': (65, 85), 'EXI': (65, 85),  # Extremo izquierdo
+        'MCd': (50, 25), 'MCi': (50, 75),  # MC derecho/izquierdo (más separados)
+        'MCO': (42, 50), 'CAM': (42, 50), 'MP': (42, 50),  # Mediapunta
+        'MD': (55, 20), 'RM': (55, 20),  # Mediocentro derecho
+        'MI': (55, 80), 'LM': (55, 80),  # Mediocentro izquierdo
+        'INT': (48, 38),  # Interior
+        # Extremos - pegados a bandas
+        'ED': (32, 10), 'RW': (32, 10), 'EXD': (32, 10),  # Extremo derecho
+        'EI': (32, 90), 'LW': (32, 90), 'EXI': (32, 90),  # Extremo izquierdo
         # Delanteros
-        'DC': (75, 50), 'ST': (75, 50), 'CF': (75, 50),  # Delantero centro
-        'DCd': (72, 35), 'DCi': (72, 65),  # Delanteros en pareja
-        'SD': (68, 40), 'SS': (68, 40),  # Segundo delantero/media punta alta
+        'DC': (22, 50), 'ST': (22, 50), 'CF': (22, 50),  # Delantero centro
+        'DCd': (25, 32), 'DCi': (25, 68),  # Delanteros en pareja
+        'SD': (30, 40), 'SS': (30, 40),  # Segundo delantero/media punta alta
     }
 
     @staticmethod
@@ -317,20 +362,21 @@ class CampoFormacion:
         d.add(Circle(width * 0.88, height/2, punto_penal,
                     fillColor=colors.white, strokeColor=None))
 
-        # Formación base del 11 RIVAL (posiciones estándar)
+        # Formación base del 11 RIVAL (posiciones con buena separación)
         # X: 0=nuestra portería, 100=portería rival
+        # Y: Más separados para evitar superposición
         formacion_base = [
-            ('1', 92, 50),   # Portero rival
-            ('2', 78, 12),   # LD rival
-            ('4', 78, 35),   # DFCd rival
-            ('5', 78, 65),   # DFCi rival
-            ('3', 78, 88),   # LI rival
-            ('6', 60, 50),   # Pivote rival
-            ('8', 50, 28),   # MC derecho rival
-            ('10', 48, 50),  # Mediapunta rival
-            ('7', 35, 12),   # Extremo derecho rival
-            ('9', 25, 50),   # Delantero centro rival
-            ('11', 35, 88),  # Extremo izquierdo rival
+            ('1', 94, 50),   # Portero rival
+            ('2', 80, 8),    # LD rival (más afuera)
+            ('4', 80, 32),   # DFCd rival
+            ('5', 80, 68),   # DFCi rival
+            ('3', 80, 92),   # LI rival (más afuera)
+            ('6', 62, 50),   # Pivote rival
+            ('8', 50, 25),   # MC derecho rival (más separado)
+            ('10', 50, 75),  # MC izquierdo rival (más separado)
+            ('7', 32, 10),   # Extremo derecho rival
+            ('9', 22, 50),   # Delantero centro rival
+            ('11', 32, 90),  # Extremo izquierdo rival
         ]
 
         # Crear set de números destacados
@@ -342,11 +388,11 @@ class CampoFormacion:
             if num:
                 numeros_destacados[num] = {'posicion': pos, 'nivel': nivel}
 
-        # Tamaños de jugadores escalados
-        tam_destacado_grande = 18 * scale_factor
-        tam_destacado_medio = 15 * scale_factor
-        tam_normal = 11 * scale_factor
-        font_destacado = max(8, int(9 * scale_factor))
+        # Tamaños de jugadores escalados - MÁS PEQUEÑOS para mejor separación
+        tam_destacado_grande = 14 * scale_factor
+        tam_destacado_medio = 12 * scale_factor
+        tam_normal = 9 * scale_factor
+        font_destacado = max(7, int(8 * scale_factor))
         font_normal = max(6, int(7 * scale_factor))
 
         # Dibujar el 11
@@ -640,10 +686,10 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
         contenido.append(Paragraph(f'<b>{titulo}</b>', style_seccion))
         contenido.append(Spacer(1, 2))
 
-        # Campo con instrucciones de IA
+        # Campo con instrucciones de IA (fase de ataque = creación->progresión->finalización)
         instrucciones = dibujos_ataque.get(tipo_fase, {})
         campo = CampoDinamico.crear_campo_con_instrucciones(
-            campo_size[0], campo_size[1], instrucciones
+            campo_size[0], campo_size[1], instrucciones, fase_tipo='ataque'
         )
         contenido.append(campo)
         contenido.append(Spacer(1, 3))
@@ -720,9 +766,10 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
         contenido.append(Paragraph(f'<b>{titulo}</b>', style_seccion))
         contenido.append(Spacer(1, 2))
 
+        # Campo con instrucciones de IA (fase defensiva = finalización->progresión->creación)
         instrucciones = dibujos_defensa.get(tipo_fase, {})
         campo = CampoDinamico.crear_campo_con_instrucciones(
-            campo_size[0], campo_size[1], instrucciones
+            campo_size[0], campo_size[1], instrucciones, fase_tipo='defensa'
         )
         contenido.append(campo)
         contenido.append(Spacer(1, 3))
@@ -806,9 +853,10 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
         contenido.append(Paragraph(f'<b>{titulo}</b>', style_seccion))
         contenido.append(Spacer(1, 3))
 
+        # Transiciones: el rival está atacando, usamos orientación 'defensa'
         instrucciones = dibujos_trans.get(tipo, {})
         campo = CampoDinamico.crear_campo_con_instrucciones(
-            campo_trans_w - 10, campo_trans_h, instrucciones
+            campo_trans_w - 10, campo_trans_h, instrucciones, fase_tipo='defensa'
         )
         contenido.append(campo)
         contenido.append(Spacer(1, 4))
@@ -877,10 +925,10 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
     if dibujos_ia:
         dibujos_abp = dibujos_ia.get('abp', {})
 
-    # Campo ABP con instrucciones de IA
+    # Campo ABP con instrucciones de IA (rival ataca, fase tipo 'defensa')
     instrucciones_abp = dibujos_abp.get('corners', {})
     campo_abp = CampoDinamico.crear_campo_con_instrucciones(
-        ancho_pagina * 0.4, 4*cm, instrucciones_abp
+        ancho_pagina * 0.4, 4*cm, instrucciones_abp, fase_tipo='defensa'
     )
 
     abp_info = []
@@ -971,7 +1019,7 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
 
         # Tarjetas de info de cada jugador
         jugador_cards = []
-        card_width = ancho_pagina / 3 - 5
+        card_width = ancho_pagina / 3 - 8  # Más margen entre tarjetas
 
         for jugador in jugadores[:3]:
             numero = jugador.get('numero', '-')
@@ -982,39 +1030,46 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
 
             if nivel == 'peligroso':
                 border_color = colors.HexColor('#DC2626')
-                nivel_text = '🔴 PELIGROSO'
+                nivel_text = 'PELIGROSO'
                 bg_color = colors.HexColor('#FEE2E2')
             elif nivel == 'importante':
                 border_color = colors.HexColor('#F59E0B')
-                nivel_text = '🟠 IMPORTANTE'
+                nivel_text = 'IMPORTANTE'
                 bg_color = colors.HexColor('#FEF3C7')
             else:
                 border_color = colors.HexColor('#9CA3AF')
-                nivel_text = '⚪ NORMAL'
+                nivel_text = 'NORMAL'
                 bg_color = COLORES['gris_claro']
 
             card_content = [
                 Paragraph(f'<b>#{numero}</b>',
-                         ParagraphStyle('num', fontSize=16,
+                         ParagraphStyle('num', fontSize=14,
                                        textColor=border_color,
                                        alignment=TA_CENTER,
-                                       fontName='Helvetica-Bold')),
+                                       fontName='Helvetica-Bold',
+                                       spaceAfter=4)),
                 Paragraph(f'<b>{nombre}</b>',
-                         ParagraphStyle('nombre', fontSize=9,
+                         ParagraphStyle('nombre', fontSize=8,
                                        textColor=COLORES['gris_oscuro'],
                                        alignment=TA_CENTER,
-                                       fontName='Helvetica-Bold')),
-                Spacer(1, 3),
-                Paragraph(f'{posicion} · {nivel_text}',
-                         ParagraphStyle('pos', fontSize=8,
+                                       fontName='Helvetica-Bold',
+                                       spaceAfter=2)),
+                Paragraph(f'{posicion}',
+                         ParagraphStyle('pos', fontSize=7,
                                        textColor=border_color,
-                                       alignment=TA_CENTER)),
-                Spacer(1, 4),
-                Paragraph(caracteristicas[:90] if len(caracteristicas) > 90 else caracteristicas,
-                         ParagraphStyle('caract', fontSize=7,
+                                       alignment=TA_CENTER,
+                                       spaceAfter=2)),
+                Paragraph(f'{nivel_text}',
+                         ParagraphStyle('nivel', fontSize=7,
+                                       textColor=border_color,
+                                       alignment=TA_CENTER,
+                                       fontName='Helvetica-Bold',
+                                       spaceAfter=4)),
+                Paragraph(caracteristicas[:80] if len(caracteristicas) > 80 else caracteristicas,
+                         ParagraphStyle('caract', fontSize=6,
                                        textColor=COLORES['gris'],
                                        alignment=TA_CENTER,
-                                       leading=9)),
+                                       leading=8)),
             ]
 
             jugador_cards.append(card_content)
@@ -1022,7 +1077,7 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
         while len(jugador_cards) < 3:
             jugador_cards.append([Paragraph('', style_texto)])
 
-        jug_table = Table([jugador_cards], colWidths=[card_width + 2]*3)
+        jug_table = Table([jugador_cards], colWidths=[card_width]*3)
         jug_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#FEE2E2') if jugadores and jugadores[0].get('nivel') == 'peligroso' else COLORES['verde_claro']),
             ('BACKGROUND', (1, 0), (1, 0), colors.HexColor('#FEF3C7') if len(jugadores) > 1 and jugadores[1].get('nivel') == 'importante' else COLORES['verde_claro']),
