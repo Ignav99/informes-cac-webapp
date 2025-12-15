@@ -318,6 +318,51 @@ def generar_v2():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/upload_logo', methods=['POST'])
+def upload_logo():
+    """Subir logo del club"""
+    if not session.get('authenticated'):
+        return jsonify({'error': 'No autorizado'}), 401
+
+    try:
+        if 'logo' not in request.files:
+            return jsonify({'success': False, 'error': 'No se envió ningún archivo'}), 400
+
+        file = request.files['logo']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No se seleccionó ningún archivo'}), 400
+
+        # Verificar extensión
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+        ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+        if ext not in allowed_extensions:
+            return jsonify({'success': False, 'error': 'Formato no válido. Use PNG, JPG o GIF'}), 400
+
+        # Guardar como logo.png en static
+        logo_path = os.path.join(static_dir, 'logo.png')
+        file.save(logo_path)
+
+        return jsonify({
+            'success': True,
+            'message': 'Logo subido correctamente'
+        })
+
+    except Exception as e:
+        print(f"Error subiendo logo: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/check_logo', methods=['GET'])
+def check_logo():
+    """Verificar si existe el logo del club"""
+    logo_path = os.path.join(static_dir, 'logo.png')
+    exists = os.path.exists(logo_path)
+    return jsonify({
+        'exists': exists,
+        'path': '/static/logo.png' if exists else None
+    })
+
+
 @app.route('/logout', methods=['POST'])
 def logout():
     """Cerrar sesión"""

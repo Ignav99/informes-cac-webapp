@@ -730,6 +730,28 @@
                         </button>
                     </div>
 
+                    <!-- Logo del Club -->
+                    <div id="logo-section" style="margin-bottom: 20px; padding: 15px; background: #DBEAFE; border: 1px solid #2563EB; border-radius: 8px;">
+                        <label style="display: block; margin-bottom: 10px; color: #1E40AF; font-weight: 600;">
+                            🛡️ Escudo del Club (aparecerá en el PDF)
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img id="logo-preview" src="/static/logo.png" onerror="this.style.display='none'"
+                                 style="max-height: 60px; max-width: 60px; border-radius: 6px; border: 2px solid #10B981;">
+                            <div style="flex: 1;">
+                                <input type="file" id="logo-input" accept="image/png,image/jpeg,image/gif"
+                                       style="display: none;" onchange="uploadLogo(this)">
+                                <button type="button" class="btn" onclick="document.getElementById('logo-input').click()"
+                                        style="background: #2563EB; color: white;">
+                                    📤 Subir Escudo
+                                </button>
+                                <span id="logo-status" style="margin-left: 10px; font-size: 13px; color: #6B7280;">
+                                    Sin escudo cargado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre del Rival *</label>
@@ -1900,6 +1922,70 @@ Ejemplo:
                 window.location.href = '/';
             }
         }
+
+        // Subir logo del club
+        async function uploadLogo(input) {
+            if (!input.files || !input.files[0]) return;
+
+            const formData = new FormData();
+            formData.append('logo', input.files[0]);
+
+            const statusEl = document.getElementById('logo-status');
+            const previewEl = document.getElementById('logo-preview');
+
+            statusEl.textContent = 'Subiendo...';
+            statusEl.style.color = '#F59E0B';
+
+            try {
+                const response = await fetch('/upload_logo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    statusEl.textContent = '✓ Escudo cargado correctamente';
+                    statusEl.style.color = '#10B981';
+                    // Forzar recarga de la imagen
+                    previewEl.src = '/static/logo.png?' + Date.now();
+                    previewEl.style.display = 'block';
+                } else {
+                    statusEl.textContent = '✗ Error: ' + result.error;
+                    statusEl.style.color = '#DC2626';
+                }
+            } catch (error) {
+                statusEl.textContent = '✗ Error al subir';
+                statusEl.style.color = '#DC2626';
+            }
+        }
+
+        // Verificar si existe logo al cargar
+        async function checkLogo() {
+            try {
+                const response = await fetch('/check_logo');
+                const result = await response.json();
+
+                const statusEl = document.getElementById('logo-status');
+                const previewEl = document.getElementById('logo-preview');
+
+                if (result.exists) {
+                    statusEl.textContent = '✓ Escudo disponible';
+                    statusEl.style.color = '#10B981';
+                    previewEl.src = result.path + '?' + Date.now();
+                    previewEl.style.display = 'block';
+                } else {
+                    statusEl.textContent = 'Sin escudo cargado';
+                    statusEl.style.color = '#6B7280';
+                    previewEl.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error verificando logo:', error);
+            }
+        }
+
+        // Llamar al cargar la página
+        document.addEventListener('DOMContentLoaded', checkLogo);
 
         // Autorrellenar con datos de ejemplo para test rápido
         function autorrellenarEjemplo() {

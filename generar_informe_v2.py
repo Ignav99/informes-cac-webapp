@@ -251,7 +251,7 @@ class CampoFormacion:
     @staticmethod
     def crear_campo_formacion(width, height, jugadores_destacados, sistema='4-3-3'):
         """
-        Crea un campo con el 11 completo
+        Crea un campo con el 11 completo con proporciones reales
 
         Args:
             width, height: Dimensiones del dibujo
@@ -263,49 +263,74 @@ class CampoFormacion:
         """
         d = Drawing(width, height)
 
+        # Factor de escala basado en la altura del campo
+        # Referencia: altura de 150px = tamaños base
+        scale_factor = height / 150
+
         # Césped con franjas
-        num_franjas = 10
+        num_franjas = 12
         franja_width = width / num_franjas
         for i in range(num_franjas):
             color = COLORES['campo_verde'] if i % 2 == 0 else COLORES['campo_verde_oscuro']
             d.add(Rect(i * franja_width, 0, franja_width, height,
                       fillColor=color, strokeColor=None))
 
-        # Borde
-        d.add(Rect(2, 2, width - 4, height - 4,
-                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+        # Borde del campo
+        borde = 3 * scale_factor
+        d.add(Rect(borde, borde, width - 2*borde, height - 2*borde,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=2))
 
-        # Línea central
-        d.add(Line(width/2, 2, width/2, height - 2,
-                  strokeColor=colors.white, strokeWidth=1))
+        # Línea central vertical
+        d.add(Line(width/2, borde, width/2, height - borde,
+                  strokeColor=colors.white, strokeWidth=1.5))
 
         # Círculo central
-        d.add(Circle(width/2, height/2, height/6,
-                    strokeColor=colors.white, strokeWidth=1, fillColor=None))
+        radio_central = min(width, height) * 0.12
+        d.add(Circle(width/2, height/2, radio_central,
+                    strokeColor=colors.white, strokeWidth=1.5, fillColor=None))
+        # Punto central
+        d.add(Circle(width/2, height/2, 3 * scale_factor,
+                    fillColor=colors.white, strokeColor=None))
 
-        # Áreas
-        area_w = width * 0.14
-        area_h = height * 0.55
-        # Área izquierda
-        d.add(Rect(2, (height - area_h)/2, area_w, area_h,
+        # Áreas grande
+        area_w = width * 0.16
+        area_h = height * 0.65
+        # Área izquierda (nuestra portería)
+        d.add(Rect(borde, (height - area_h)/2, area_w, area_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+        # Área derecha (portería rival)
+        d.add(Rect(width - borde - area_w, (height - area_h)/2, area_w, area_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+
+        # Áreas pequeñas
+        area_p_w = width * 0.06
+        area_p_h = height * 0.35
+        d.add(Rect(borde, (height - area_p_h)/2, area_p_w, area_p_h,
                   fillColor=None, strokeColor=colors.white, strokeWidth=1))
-        # Área derecha
-        d.add(Rect(width - area_w - 2, (height - area_h)/2, area_w, area_h,
+        d.add(Rect(width - borde - area_p_w, (height - area_p_h)/2, area_p_w, area_p_h,
                   fillColor=None, strokeColor=colors.white, strokeWidth=1))
 
-        # Formación base del 11 (posiciones estándar en gris)
+        # Puntos de penalti
+        punto_penal = 3 * scale_factor
+        d.add(Circle(width * 0.12, height/2, punto_penal,
+                    fillColor=colors.white, strokeColor=None))
+        d.add(Circle(width * 0.88, height/2, punto_penal,
+                    fillColor=colors.white, strokeColor=None))
+
+        # Formación base del 11 RIVAL (posiciones estándar)
+        # X: 0=nuestra portería, 100=portería rival
         formacion_base = [
-            ('1', 8, 50),    # Portero
-            ('2', 22, 15),   # LD
-            ('4', 22, 38),   # DFCd
-            ('5', 22, 62),   # DFCi
-            ('3', 22, 85),   # LI
-            ('6', 40, 50),   # Pivote
-            ('8', 50, 30),   # MC derecho
-            ('10', 55, 50),  # Mediapunta
-            ('7', 65, 15),   # Extremo derecho
-            ('9', 75, 50),   # Delantero centro
-            ('11', 65, 85),  # Extremo izquierdo
+            ('1', 92, 50),   # Portero rival
+            ('2', 78, 12),   # LD rival
+            ('4', 78, 35),   # DFCd rival
+            ('5', 78, 65),   # DFCi rival
+            ('3', 78, 88),   # LI rival
+            ('6', 60, 50),   # Pivote rival
+            ('8', 50, 28),   # MC derecho rival
+            ('10', 48, 50),  # Mediapunta rival
+            ('7', 35, 12),   # Extremo derecho rival
+            ('9', 25, 50),   # Delantero centro rival
+            ('11', 35, 88),  # Extremo izquierdo rival
         ]
 
         # Crear set de números destacados
@@ -316,6 +341,13 @@ class CampoFormacion:
             nivel = jug.get('nivel', 'normal')
             if num:
                 numeros_destacados[num] = {'posicion': pos, 'nivel': nivel}
+
+        # Tamaños de jugadores escalados
+        tam_destacado_grande = 18 * scale_factor
+        tam_destacado_medio = 15 * scale_factor
+        tam_normal = 11 * scale_factor
+        font_destacado = max(8, int(9 * scale_factor))
+        font_normal = max(6, int(7 * scale_factor))
 
         # Dibujar el 11
         for numero, x_pct, y_pct in formacion_base:
@@ -334,19 +366,21 @@ class CampoFormacion:
                 # Color según nivel
                 if info['nivel'] == 'peligroso':
                     fill_color = COLORES['rojo']
-                    tamano = 14
+                    tamano = tam_destacado_grande
                 elif info['nivel'] == 'importante':
                     fill_color = COLORES['naranja']
-                    tamano = 12
+                    tamano = tam_destacado_medio
                 else:
                     fill_color = COLORES['amarillo']
-                    tamano = 12
-                stroke_width = 2
+                    tamano = tam_destacado_medio
+                stroke_width = 2.5
+                font_size = font_destacado
             else:
                 # Jugador normal - gris
                 fill_color = colors.HexColor('#6B7280')
-                tamano = 9
-                stroke_width = 1
+                tamano = tam_normal
+                stroke_width = 1.5
+                font_size = font_normal
 
             # Círculo del jugador
             d.add(Circle(x, y, tamano/2,
@@ -355,8 +389,7 @@ class CampoFormacion:
                         strokeWidth=stroke_width))
 
             # Número
-            font_size = 7 if numero in numeros_destacados else 5
-            d.add(String(x, y - 2, numero,
+            d.add(String(x, y - font_size/3, numero,
                         fontSize=font_size,
                         fontName='Helvetica-Bold',
                         fillColor=colors.white,
@@ -892,9 +925,14 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
 
     if jugadores:
         # Campo con el 11 completo - jugadores destacados resaltados
+        # Proporciones reales de campo de fútbol: 105m x 68m ≈ ratio 1.54:1
+        # Usamos ancho más pequeño para mantener proporciones correctas
+        campo_ancho = ancho_pagina * 0.85  # Un poco más pequeño que el ancho total
+        campo_alto = campo_ancho / 1.54     # Proporciones reales de campo
+
         campo_formacion = CampoFormacion.crear_campo_formacion(
-            ancho_pagina,
-            4.5*cm,
+            campo_ancho,
+            campo_alto,
             jugadores[:3]
         )
         story.append(campo_formacion)
