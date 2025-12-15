@@ -207,6 +207,165 @@ class CampoDinamico:
 
 
 # =============================================================================
+# CAMPO DE FORMACIÓN CON 11 JUGADORES
+# =============================================================================
+class CampoFormacion:
+    """Dibuja un campo con el 11 completo, destacando jugadores clave"""
+
+    # Posiciones estándar en el campo (X%, Y%) - campo horizontal
+    # X: 0=portería propia, 100=portería rival
+    # Y: 0=banda inferior, 100=banda superior
+    POSICIONES = {
+        # Portero
+        'PT': (8, 50), 'POR': (8, 50), 'GK': (8, 50),
+        # Defensas
+        'DFC': (22, 50), 'CB': (22, 50),  # Central único
+        'DFCd': (22, 35), 'DFCi': (22, 65),  # Centrales en pareja
+        'LD': (22, 15), 'RB': (22, 15), 'LTD': (22, 15),  # Lateral derecho
+        'LI': (22, 85), 'LB': (22, 85), 'LTI': (22, 85),  # Lateral izquierdo
+        'CAD': (28, 20), 'RWB': (28, 20),  # Carrilero derecho
+        'CAI': (28, 80), 'LWB': (28, 80),  # Carrilero izquierdo
+        # Centrocampistas
+        'MCD': (40, 50), 'CDM': (40, 50), 'PIV': (40, 50),  # Pivote
+        'MC': (50, 50), 'CM': (50, 50),  # Centrocampista
+        'MCd': (50, 35), 'MCi': (50, 65),  # MC derecho/izquierdo
+        'MCO': (55, 50), 'CAM': (55, 50), 'MP': (55, 50),  # Mediapunta
+        'MD': (45, 25), 'RM': (45, 25),  # Mediocentro derecho
+        'MI': (45, 75), 'LM': (45, 75),  # Mediocentro izquierdo
+        'INT': (50, 40),  # Interior
+        # Extremos
+        'ED': (65, 15), 'RW': (65, 15), 'EXD': (65, 15),  # Extremo derecho
+        'EI': (65, 85), 'LW': (65, 85), 'EXI': (65, 85),  # Extremo izquierdo
+        # Delanteros
+        'DC': (75, 50), 'ST': (75, 50), 'CF': (75, 50),  # Delantero centro
+        'DCd': (72, 35), 'DCi': (72, 65),  # Delanteros en pareja
+        'SD': (68, 40), 'SS': (68, 40),  # Segundo delantero/media punta alta
+    }
+
+    @staticmethod
+    def obtener_posicion(posicion_texto):
+        """Obtiene coordenadas para una posición dada"""
+        pos = posicion_texto.upper().strip()
+        return CampoFormacion.POSICIONES.get(pos, (50, 50))
+
+    @staticmethod
+    def crear_campo_formacion(width, height, jugadores_destacados, sistema='4-3-3'):
+        """
+        Crea un campo con el 11 completo
+
+        Args:
+            width, height: Dimensiones del dibujo
+            jugadores_destacados: Lista de dicts con {numero, posicion, nombre, nivel}
+            sistema: Sistema táctico para posicionar el resto del 11
+
+        Returns:
+            Drawing con el campo y jugadores
+        """
+        d = Drawing(width, height)
+
+        # Césped con franjas
+        num_franjas = 10
+        franja_width = width / num_franjas
+        for i in range(num_franjas):
+            color = COLORES['campo_verde'] if i % 2 == 0 else COLORES['campo_verde_oscuro']
+            d.add(Rect(i * franja_width, 0, franja_width, height,
+                      fillColor=color, strokeColor=None))
+
+        # Borde
+        d.add(Rect(2, 2, width - 4, height - 4,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1.5))
+
+        # Línea central
+        d.add(Line(width/2, 2, width/2, height - 2,
+                  strokeColor=colors.white, strokeWidth=1))
+
+        # Círculo central
+        d.add(Circle(width/2, height/2, height/6,
+                    strokeColor=colors.white, strokeWidth=1, fillColor=None))
+
+        # Áreas
+        area_w = width * 0.14
+        area_h = height * 0.55
+        # Área izquierda
+        d.add(Rect(2, (height - area_h)/2, area_w, area_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1))
+        # Área derecha
+        d.add(Rect(width - area_w - 2, (height - area_h)/2, area_w, area_h,
+                  fillColor=None, strokeColor=colors.white, strokeWidth=1))
+
+        # Formación base del 11 (posiciones estándar en gris)
+        formacion_base = [
+            ('1', 8, 50),    # Portero
+            ('2', 22, 15),   # LD
+            ('4', 22, 38),   # DFCd
+            ('5', 22, 62),   # DFCi
+            ('3', 22, 85),   # LI
+            ('6', 40, 50),   # Pivote
+            ('8', 50, 30),   # MC derecho
+            ('10', 55, 50),  # Mediapunta
+            ('7', 65, 15),   # Extremo derecho
+            ('9', 75, 50),   # Delantero centro
+            ('11', 65, 85),  # Extremo izquierdo
+        ]
+
+        # Crear set de números destacados
+        numeros_destacados = {}
+        for jug in jugadores_destacados:
+            num = str(jug.get('numero', ''))
+            pos = jug.get('posicion', '')
+            nivel = jug.get('nivel', 'normal')
+            if num:
+                numeros_destacados[num] = {'posicion': pos, 'nivel': nivel}
+
+        # Dibujar el 11
+        for numero, x_pct, y_pct in formacion_base:
+            x = (x_pct / 100) * width
+            y = (y_pct / 100) * height
+
+            # Verificar si es un jugador destacado
+            if numero in numeros_destacados:
+                info = numeros_destacados[numero]
+                # Reposicionar según la posición real si la tiene
+                if info['posicion']:
+                    new_x, new_y = CampoFormacion.obtener_posicion(info['posicion'])
+                    x = (new_x / 100) * width
+                    y = (new_y / 100) * height
+
+                # Color según nivel
+                if info['nivel'] == 'peligroso':
+                    fill_color = COLORES['rojo']
+                    tamano = 14
+                elif info['nivel'] == 'importante':
+                    fill_color = COLORES['naranja']
+                    tamano = 12
+                else:
+                    fill_color = COLORES['amarillo']
+                    tamano = 12
+                stroke_width = 2
+            else:
+                # Jugador normal - gris
+                fill_color = colors.HexColor('#6B7280')
+                tamano = 9
+                stroke_width = 1
+
+            # Círculo del jugador
+            d.add(Circle(x, y, tamano/2,
+                        fillColor=fill_color,
+                        strokeColor=colors.white,
+                        strokeWidth=stroke_width))
+
+            # Número
+            font_size = 7 if numero in numeros_destacados else 5
+            d.add(String(x, y - 2, numero,
+                        fontSize=font_size,
+                        fontName='Helvetica-Bold',
+                        fillColor=colors.white,
+                        textAnchor='middle'))
+
+        return d
+
+
+# =============================================================================
 # UTILIDADES
 # =============================================================================
 def obtener_logo_path():
@@ -732,6 +891,47 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
     jugadores = datos.get('jugadores_clave', [])
 
     if jugadores:
+        # Campo con el 11 completo - jugadores destacados resaltados
+        campo_formacion = CampoFormacion.crear_campo_formacion(
+            ancho_pagina,
+            4.5*cm,
+            jugadores[:3]
+        )
+        story.append(campo_formacion)
+        story.append(Spacer(1, 0.3*cm))
+
+        # Leyenda del campo
+        leyenda_items = []
+        for jug in jugadores[:3]:
+            nivel = jug.get('nivel', 'normal')
+            if nivel == 'peligroso':
+                color_dot = COLORES['rojo']
+            elif nivel == 'importante':
+                color_dot = COLORES['naranja']
+            else:
+                color_dot = COLORES['amarillo']
+
+            leyenda_items.append(
+                Paragraph(f'<font color="{color_dot.hexval()}">●</font> #{jug.get("numero", "-")} {jug.get("nombre", "-")} ({jug.get("posicion", "-")})',
+                         ParagraphStyle('leyenda', fontSize=8, textColor=COLORES['gris_oscuro']))
+            )
+
+        leyenda_gris = Paragraph('<font color="#6B7280">●</font> Resto del 11',
+                                ParagraphStyle('leyenda', fontSize=8, textColor=COLORES['gris']))
+
+        leyenda_table = Table([[leyenda_items[0] if len(leyenda_items) > 0 else '',
+                               leyenda_items[1] if len(leyenda_items) > 1 else '',
+                               leyenda_items[2] if len(leyenda_items) > 2 else '',
+                               leyenda_gris]],
+                             colWidths=[ancho_pagina/4]*4)
+        leyenda_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        story.append(leyenda_table)
+        story.append(Spacer(1, 0.3*cm))
+
+        # Tarjetas de info de cada jugador
         jugador_cards = []
         card_width = ancho_pagina / 3 - 5
 
@@ -744,47 +944,35 @@ def generar_informe_v2_pdf(datos, output_path, dibujos_ia=None):
 
             if nivel == 'peligroso':
                 border_color = colors.HexColor('#DC2626')
-                nivel_text = 'PELIGROSO'
+                nivel_text = '🔴 PELIGROSO'
+                bg_color = colors.HexColor('#FEE2E2')
             elif nivel == 'importante':
                 border_color = colors.HexColor('#F59E0B')
-                nivel_text = 'IMPORTANTE'
+                nivel_text = '🟠 IMPORTANTE'
+                bg_color = colors.HexColor('#FEF3C7')
             else:
                 border_color = colors.HexColor('#9CA3AF')
-                nivel_text = 'NORMAL'
-
-            # Mini campo con jugador
-            mini_campo = Drawing(card_width - 20, 2.5*cm)
-            mini_campo.add(Rect(0, 0, card_width - 20, 2.5*cm,
-                               fillColor=COLORES['campo_verde'],
-                               strokeColor=COLORES['campo_verde_oscuro'],
-                               strokeWidth=1))
-            mini_campo.add(Line((card_width-20)/2, 0, (card_width-20)/2, 2.5*cm,
-                               strokeColor=colors.white, strokeWidth=1))
-            # Jugador destacado
-            mini_campo.add(Circle((card_width-20)/2, 1.25*cm, 10,
-                                 fillColor=border_color,
-                                 strokeColor=colors.white,
-                                 strokeWidth=1.5))
-            mini_campo.add(String((card_width-20)/2, 1.25*cm - 3, str(numero),
-                                 fontSize=8, fontName='Helvetica-Bold',
-                                 fillColor=colors.white, textAnchor='middle'))
+                nivel_text = '⚪ NORMAL'
+                bg_color = COLORES['gris_claro']
 
             card_content = [
-                Paragraph(f'<b>#{numero} {nombre}</b>',
-                         ParagraphStyle('nombre', fontSize=10,
+                Paragraph(f'<b>#{numero}</b>',
+                         ParagraphStyle('num', fontSize=16,
+                                       textColor=border_color,
+                                       alignment=TA_CENTER,
+                                       fontName='Helvetica-Bold')),
+                Paragraph(f'<b>{nombre}</b>',
+                         ParagraphStyle('nombre', fontSize=9,
                                        textColor=COLORES['gris_oscuro'],
                                        alignment=TA_CENTER,
                                        fontName='Helvetica-Bold')),
                 Spacer(1, 3),
-                mini_campo,
-                Spacer(1, 3),
-                Paragraph(f'<b>{posicion}</b> · {nivel_text}',
+                Paragraph(f'{posicion} · {nivel_text}',
                          ParagraphStyle('pos', fontSize=8,
                                        textColor=border_color,
-                                       alignment=TA_CENTER,
-                                       fontName='Helvetica-Bold')),
-                Spacer(1, 2),
-                Paragraph(caracteristicas[:80] if len(caracteristicas) > 80 else caracteristicas,
+                                       alignment=TA_CENTER)),
+                Spacer(1, 4),
+                Paragraph(caracteristicas[:90] if len(caracteristicas) > 90 else caracteristicas,
                          ParagraphStyle('caract', fontSize=7,
                                        textColor=COLORES['gris'],
                                        alignment=TA_CENTER,
