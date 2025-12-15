@@ -2,6 +2,10 @@
 """
 Analizador de IA para Notas de Partido
 Club Atlético Central
+
+Soporta:
+- Groq (LLaMA) - Para análisis de texto rápido
+- Google Gemini - Para dibujos tácticos precisos
 """
 
 import os
@@ -15,10 +19,20 @@ load_dotenv()
 # Importar Groq con manejo de errores
 try:
     from groq import Groq
+    GROQ_DISPONIBLE = True
     print(f"✓ Groq importado correctamente", file=sys.stderr)
 except ImportError as e:
-    print(f"✗ Error importando Groq: {e}", file=sys.stderr)
-    raise
+    GROQ_DISPONIBLE = False
+    print(f"⚠ Groq no disponible: {e}", file=sys.stderr)
+
+# Importar Google Gemini con manejo de errores
+try:
+    import google.generativeai as genai
+    GEMINI_DISPONIBLE = True
+    print(f"✓ Google Gemini importado correctamente", file=sys.stderr)
+except ImportError as e:
+    GEMINI_DISPONIBLE = False
+    print(f"⚠ Google Gemini no disponible: {e}", file=sys.stderr)
 
 
 class IAAnalyzer:
@@ -31,19 +45,29 @@ class IAAnalyzer:
         Inicializar analizador
 
         Args:
-            provider: 'groq', 'claude', 'ollama'
+            provider: 'groq', 'claude', 'ollama', 'gemini'
         """
         self.provider = provider
         self.groq_key = os.getenv('GROQ_API_KEY')
         self.claude_key = os.getenv('ANTHROPIC_API_KEY')
+        self.google_key = os.getenv('GOOGLE_API_KEY')
+
+        # Configurar Gemini si está disponible
+        if GEMINI_DISPONIBLE and self.google_key:
+            genai.configure(api_key=self.google_key)
+            self.gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+            print(f"[IA] ✓ Gemini configurado correctamente", file=sys.stderr)
+        else:
+            self.gemini_model = None
 
         # Log para debugging
-        print(f"[IA] Provider: {provider}", file=sys.stderr)
-        if provider == 'groq':
-            if self.groq_key:
-                print(f"[IA] API Key encontrada: {self.groq_key[:20]}...", file=sys.stderr)
-            else:
-                print(f"[IA] ✗ GROQ_API_KEY no encontrada", file=sys.stderr)
+        print(f"[IA] Provider principal: {provider}", file=sys.stderr)
+        if self.groq_key:
+            print(f"[IA] ✓ GROQ_API_KEY encontrada", file=sys.stderr)
+        if self.google_key:
+            print(f"[IA] ✓ GOOGLE_API_KEY encontrada", file=sys.stderr)
+        else:
+            print(f"[IA] ⚠ GOOGLE_API_KEY no encontrada (Gemini no disponible)", file=sys.stderr)
 
     def analizar_notas_rival(self, notas_texto):
         """
@@ -357,6 +381,8 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
         """
         Genera instrucciones de dibujo para un campo táctico basándose en el texto
 
+        PRIORIDAD: Gemini (mejor razonamiento espacial) > Groq (fallback)
+
         Args:
             fase: 'ataque', 'defensa', 'transicion', 'abp'
             tipo: subtipo de la fase (ej: 'vs_bloque_alto', 'pressing_alto', 'def_atq')
@@ -367,15 +393,27 @@ Devuelve ÚNICAMENTE un JSON válido con sugerencias tácticas:
         """
         prompt = self._construir_prompt_dibujo(fase, tipo, texto_tactico)
 
-        try:
-            if self.provider == 'groq':
-                resultado = self._analizar_groq_dibujo(prompt)
-            else:
-                resultado = self._analizar_groq_dibujo(prompt)
+        # Intentar con Gemini primero (mejor para dibujos)
+        if self.gemini_model:
+            try:
+                print(f"[IA] Usando Gemini para dibujo {fase}/{tipo}", file=sys.stderr)
+                resultado = self._analizar_gemini_dibujo(prompt)
+                return {
+                    'success': True,
+                    'data': resultado,
+                    'provider': 'gemini'
+                }
+            except Exception as e:
+                print(f"[IA] Error Gemini, intentando Groq: {e}", file=sys.stderr)
 
+        # Fallback a Groq
+        try:
+            print(f"[IA] Usando Groq para dibujo {fase}/{tipo}", file=sys.stderr)
+            resultado = self._analizar_groq_dibujo(prompt)
             return {
                 'success': True,
-                'data': resultado
+                'data': resultado,
+                'provider': 'groq'
             }
         except Exception as e:
             print(f"[IA] Error generando dibujo: {e}", file=sys.stderr)
@@ -569,6 +607,61 @@ REGLAS CRÍTICAS:
 
         except Exception as e:
             print(f"[IA] Error en dibujo Groq: {e}", file=sys.stderr)
+            raise
+
+    def _analizar_gemini_dibujo(self, prompt):
+        """
+        Analiza usando Google Gemini para generar dibujos tácticos
+
+        Gemini tiene mejor razonamiento espacial que LLaMA, ideal para
+        posicionar jugadores y flechas en coordenadas precisas.
+        """
+        if not self.gemini_model:
+            raise ValueError("Gemini no configurado")
+
+        try:
+            # Prompt de sistema integrado para Gemini
+            full_prompt = f"""Eres un analista táctico de fútbol profesional especializado en visualización.
+
+INSTRUCCIONES CRÍTICAS:
+1. SOLO dibuja elementos EXPLÍCITAMENTE mencionados en el texto
+2. NO inventes ni añadas elementos que no estén descritos
+3. Respeta EXACTAMENTE las coordenadas X indicadas para cada zona del campo
+4. Si menciona números de jugadores (ej: "el 10", "el 9"), usa ESOS números
+5. Si menciona una estructura (ej: "4+1", "4-4-2"), dibuja EXACTAMENTE esos jugadores
+6. Las flechas SOLO para movimientos/pases que se describan
+7. Devuelve ÚNICAMENTE el JSON, sin explicaciones ni comentarios
+
+{prompt}"""
+
+            # Configuración para respuestas precisas
+            generation_config = genai.types.GenerationConfig(
+                temperature=0.1,  # Muy bajo para máxima precisión
+                max_output_tokens=2000,
+            )
+
+            response = self.gemini_model.generate_content(
+                full_prompt,
+                generation_config=generation_config
+            )
+
+            contenido = response.text.strip()
+
+            # Limpiar markdown si existe
+            if contenido.startswith('```json'):
+                contenido = contenido[7:]
+            if contenido.startswith('```'):
+                contenido = contenido[3:]
+            if contenido.endswith('```'):
+                contenido = contenido[:-3]
+            contenido = contenido.strip()
+
+            resultado = json.loads(contenido)
+            print(f"[IA] Gemini generó dibujo con {len(resultado.get('jugadores', []))} jugadores", file=sys.stderr)
+            return resultado
+
+        except Exception as e:
+            print(f"[IA] Error en dibujo Gemini: {e}", file=sys.stderr)
             raise
 
     def _dibujo_por_defecto(self, fase, tipo):
